@@ -12,9 +12,6 @@ import (
 	"golang.org/x/crypto/bcrypt"
 	"net/http"
     "github.com/google/uuid"
-    "time"
-    "github.com/go-redis/redis/v8"
-    "context"
 )
 
 type authHandler struct {
@@ -23,10 +20,9 @@ type authHandler struct {
     tokenSecret      string
     userRepo         database.UserRepo
     organizationRepo database.OrganizationRepo
-    tokenStore       TokenStore // Add this field
 }
 
-func newAuthHandler(userRepo database.UserRepo, organizationRepo database.OrganizationRepo, tokenSecret string, tokenStore TokenStore) authHandler {
+func newAuthHandler(userRepo database.UserRepo, organizationRepo database.OrganizationRepo, tokenSecret string) authHandler {
     logger := log.With().Str("handlerName", "authHandler").Logger()
 
     return authHandler{
@@ -35,11 +31,10 @@ func newAuthHandler(userRepo database.UserRepo, organizationRepo database.Organi
         tokenSecret:      tokenSecret,
         userRepo:         userRepo,
         organizationRepo: organizationRepo,
-        tokenStore:       tokenStore, // Set the tokenStore here
     }
 }
 
-
+/*
 // Logout method implementation
 func (h authHandler) logout() http.HandlerFunc {
     return func(w http.ResponseWriter, r *http.Request) {
@@ -64,7 +59,7 @@ func (h authHandler) logout() http.HandlerFunc {
 
         h.responder.writeJSON(w, map[string]string{"status": "success", "message": "logged out successfully"})
     }
-}
+}*/
 
 type credentials struct {
 	Email    string

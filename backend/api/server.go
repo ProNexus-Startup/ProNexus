@@ -65,9 +65,7 @@ func newRouter(database database.Database, opts ...func(*router)) *chi.Mux {
 	// define handlers
 	organizationHandler := newOrganizationHandler(database.OrganizationRepo(), database.UserRepo(), database.CallTrackerRepo(), database.AvailableExpertRepo())
 	userHandler := newUserHandler(database.UserRepo())
-	tokenSecret := config.GetString("TOKENSECRET", "defaultTokenSecret")
-	tokenStore := api.NewRedisTokenStore("localhost:8080")
-	authHandler := newAuthHandler(database.UserRepo(), database.OrganizationRepo(), tokenSecret, tokenStore)
+	authHandler := newAuthHandler(database.UserRepo(), database.OrganizationRepo(), config.GetString(router.config, "TOKENSECRET", "tokenSecret"))
 	AvailableExpertHandler := newAvailableExpertHandler(database.AvailableExpertRepo())
     CallTrackerHandler := newCallTrackerHandler(database.CallTrackerRepo())
 
@@ -81,7 +79,7 @@ func newRouter(database database.Database, opts ...func(*router)) *chi.Mux {
 		r.Post("/signup", authHandler.signup())
 		r.Post("/makeorg", organizationHandler.makeOrg())
 		r.Get("/users", userHandler.getUsers())
-		r.Post("/logout", authHandler.logout())
+		//r.Post("/logout", authHandler.logout())
 	})
 
 	// user endpoints
