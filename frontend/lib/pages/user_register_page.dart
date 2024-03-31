@@ -73,6 +73,7 @@ class _UserRegisterPageState extends State<UserRegisterPage> {
             var data = jsonDecode(req.body);
             String token = data['Token'];
             await SecureStorage().write('token', token);
+            print(token);
             if (!context.mounted) {
               return;
             }

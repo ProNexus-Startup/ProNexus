@@ -3,7 +3,7 @@ import 'package:admin/responsive.dart';
 import 'package:admin/pages/components/dashboard_screen.dart';
 import 'package:admin/utils/global_bloc.dart';
 import 'package:admin/utils/persistence/secure_storage.dart';
-import 'package:admin/utils/persistence/user_data.dart';
+//import 'package:admin/utils/persistence/user_data.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -27,37 +27,35 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _loadUserData() async {
-    // Assuming you have a method to retrieve the stored token
-    //String token =
-    //    await getToken(); // Implement getToken to get the token from storage
-    //if (token != null) {
-    //  await onUserLogin(token);
+    final GlobalBloc globalBloc =
+        Provider.of<GlobalBloc>(context, listen: false);
+    globalBloc.onUserLogin(widget.token);
   }
 
   Future<void> _logout(BuildContext context) async {
-    AuthAPI _authAPI = AuthAPI();
-    var req = await _authAPI.logout(widget.token);
-    print(req.statusCode);
-    if (req.statusCode == 200) {
-      await SecureStorage().delete('token');
-      if (!context.mounted) {
-        return;
-      }
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      prefs.setBool("isLoggedIn", false);
-      if (!context.mounted) {
-        return;
-      }
-      // Accessing  instance
-      Provider.of<GlobalBloc>(context, listen: false).onUserLogout();
-
-      Navigator.pushNamed(
-        context,
-        LoginPage.routeName,
-      );
-    } else {
-      print("failed to log out");
+    //AuthAPI _authAPI = AuthAPI();
+    //var req = await _authAPI.logout(widget.token);
+    //print(req.statusCode);
+    //if (req.statusCode == 200) {
+    await SecureStorage().delete('token');
+    if (!context.mounted) {
+      return;
     }
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs.setBool("isLoggedIn", false);
+    if (!context.mounted) {
+      return;
+    }
+    // Accessing  instance
+    Provider.of<GlobalBloc>(context, listen: false).onUserLogout();
+
+    Navigator.pushNamed(
+      context,
+      LoginPage.routeName,
+    );
+    //} else {
+    //print("failed to log out");
+    //}
   }
 
   @override

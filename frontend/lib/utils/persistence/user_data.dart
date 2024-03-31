@@ -97,6 +97,7 @@ class AuthAPI extends BaseAPI {
 
   Future<User> getUser(String token) async {
     AuthAPI _authAPI = AuthAPI();
+    print("trying");
     try {
       final response = await http.get(_authAPI.userPath,
           headers: {"Authorization": "Bearer ${token}"});
@@ -117,6 +118,7 @@ class AuthAPI extends BaseAPI {
   Future<List<AvailableExpert>> getExperts(String token) async {
     AuthAPI _authAPI = AuthAPI();
     try {
+      print("didnyt work");
       // Retrieve the current user
       User user = await getUser(token);
       String organizationID = user.organizationID;
