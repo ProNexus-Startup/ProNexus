@@ -12,7 +12,7 @@ import '../utils/models/app_text_form_field.dart';
 //import 'resources/vectors.dart';
 //import '../utils/extensions.dart';
 //import '../../utils/formatting/app_constants.dart';
-import '../utils/persistence/user_data.dart';
+import '../utils/BaseAPI.dart';
 import '../utils/persistence/secure_storage.dart';
 //import '../utils/login_stuff/screen_arguments.dart';
 
@@ -49,8 +49,7 @@ class _LoginPageState extends State<LoginPage> {
       print(req.statusCode);
       if (req.statusCode == 200) {
         var data = jsonDecode(req.body);
-        String token = data['Token'];
-        print(token);
+        String token = data['token'];
         await SecureStorage().write('token', token);
         if (!context.mounted) {
           return;

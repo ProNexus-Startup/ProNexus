@@ -5,5 +5,6 @@ type Database interface {
 	UserRepo() UserRepo
 	AvailableExpertRepo() AvailableExpertRepo
 	CallTrackerRepo() CallTrackerRepo
+	ProjectRepo() ProjectRepo
 	MigrateStep(migrateDir string, steps int) error
 }

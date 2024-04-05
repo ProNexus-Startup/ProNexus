@@ -1,7 +1,7 @@
 import 'dart:async';
 
+import 'package:admin/pages/projects_page.dart';
 import 'package:flutter/material.dart';
-import '../pages/home_page.dart'; // Ensure this path is correct
 import '../pages/login_page.dart'; // Ensure this path is correct
 import '../utils/persistence/secure_storage.dart';
 import '../utils/persistence/screen_arguments.dart'; // Ensure this is the correct import
@@ -37,7 +37,7 @@ class _SplashPageState extends State<SplashPage> {
   }
 
   void startTimer() {
-    Timer(Duration(seconds: 2),
+    Timer(Duration(seconds: 1),
         navigateUser); // Updated to 2 seconds for better UX
   }
 
@@ -51,7 +51,7 @@ class _SplashPageState extends State<SplashPage> {
     // Check if the token is not null and not empty
     if (token != 'No data found!' && token != null && token.isNotEmpty) {
       // Using pushReplacementNamed to avoid going back to the SplashPage
-      Navigator.pushReplacementNamed(context, HomePage.routeName,
+      Navigator.pushReplacementNamed(context, ProjectPage.routeName,
           arguments: ScreenArguments(token, ""));
     } else {
       // Navigate to LoginPage if there's no token

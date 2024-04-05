@@ -1,8 +1,11 @@
+import 'package:admin/utils/controllers/MenuAppController.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 class SideMenu extends StatelessWidget {
-  const SideMenu({Key? key}) : super(key: key);
+  final Function(AppPage) onSelectPage;
+
+  const SideMenu({Key? key, required this.onSelectPage}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -15,23 +18,14 @@ class SideMenu extends StatelessWidget {
           DrawerListTile(
             title: "Available Experts",
             svgSrc: "assets/icons/menu_dashboard.svg",
-            press: () {},
+            press: () => onSelectPage(AppPage.availableExperts),
           ),
           DrawerListTile(
             title: "Call Tracker",
             svgSrc: "assets/icons/menu_notification.svg",
-            press: () {},
+            press: () => onSelectPage(AppPage.callTracker),
           ),
-          DrawerListTile(
-            title: "Profile",
-            svgSrc: "assets/icons/menu_profile.svg",
-            press: () {},
-          ),
-          DrawerListTile(
-            title: "Settings",
-            svgSrc: "assets/icons/menu_setting.svg",
-            press: () {},
-          ),
+          // Add more DrawerListTiles as needed for Profile, Settings, etc.
         ],
       ),
     );

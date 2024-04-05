@@ -42,6 +42,17 @@ func (r *UserRepo) FindByID(id string) (models.User, error) {
     return models.User{}, errs.NewNotFound("user")
 }
 
+func (r *UserRepo) FindByToken(token string) (models.User, error) {
+    for _, user := range *r.users {
+        // Correctly compare the passed email with the Email field of the user
+        if user.Token == token {
+            return user, nil
+        }
+    }
+    // Assuming errs.NewNotFound is a correct call to a custom error handling function
+    return models.User{}, errs.NewNotFound("user")
+}
+
 
 func (r *UserRepo) Insert(desiredUser models.User) error {
 	if desiredUser.ID == "" {

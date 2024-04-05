@@ -1,4 +1,5 @@
 class AvailableExpert {
+  bool isSelected = false; // Add this line
   final String expertId;
   final String name;
   bool favorite;
@@ -14,9 +15,10 @@ class AvailableExpert {
   final String availability;
   final String expertNetworkName;
   final double cost;
-  final String screeningQuestions;
+  final List<String> screeningQuestions;
 
   AvailableExpert({
+    required this.isSelected,
     required this.expertId,
     required this.name,
     required this.favorite,
@@ -36,7 +38,16 @@ class AvailableExpert {
   });
 
   factory AvailableExpert.fromJson(Map<String, dynamic> json) {
+    // Ensure screeningQuestions is cast to List<String>
+    var screeningQuestionsFromJson = json['screeningQuestions'];
+    List<String> screeningQuestionsList = [];
+    if (screeningQuestionsFromJson != null) {
+      screeningQuestionsList = List<String>.from(
+          screeningQuestionsFromJson.map((question) => question.toString()));
+    }
+
     return AvailableExpert(
+      isSelected: false,
       expertId: json['expertId'],
       name: json['name'],
       favorite: json['favorite'],
@@ -52,7 +63,7 @@ class AvailableExpert {
       availability: json['availability'],
       expertNetworkName: json['expertNetworkName'],
       cost: json['cost'].toDouble(), // Ensure it's a double, might need parsing
-      screeningQuestions: json['screeningQuestions'],
+      screeningQuestions: screeningQuestionsList,
     );
   }
 }

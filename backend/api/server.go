@@ -49,7 +49,6 @@ func newRouter(database database.Database, opts ...func(*router)) *chi.Mux {
 	}
 
 	chiRouter := chi.NewRouter()
-
 	// middlewares
 	corsAllowedOrigin := config.GetString(router.config, "CORSALLOWEDORIGIN", "http://*")
 	chiRouter.Use(cors.Handler(cors.Options{
@@ -59,15 +58,15 @@ func newRouter(database database.Database, opts ...func(*router)) *chi.Mux {
 		AllowedHeaders:   []string{"Content-Type", "Authorization", "userID"},
 		MaxAge:           config.GetInt(router.config, "MAXAGE", 300),
 	}))
-	// define middleware
-	authMiddleware := newAuthMiddleware()
 
 	// define handlers
-	organizationHandler := newOrganizationHandler(database.OrganizationRepo(), database.UserRepo(), database.CallTrackerRepo(), database.AvailableExpertRepo())
+	authMiddleware := newAuthMiddleware()
+	organizationHandler := newOrganizationHandler(database.OrganizationRepo(), database.UserRepo(), database.CallTrackerRepo(), database.AvailableExpertRepo(), database.ProjectRepo())
 	userHandler := newUserHandler(database.UserRepo())
-	authHandler := newAuthHandler(database.UserRepo(), database.OrganizationRepo(), config.GetString(router.config, "TOKENSECRET", "tokenSecret"))
+	authHandler := newAuthHandler(database.UserRepo(), database.OrganizationRepo())//, config.GetString(router.config, "TOKENSECRET", "tokenSecret"))
 	AvailableExpertHandler := newAvailableExpertHandler(database.AvailableExpertRepo())
     CallTrackerHandler := newCallTrackerHandler(database.CallTrackerRepo())
+	ProjectHandler := newProjectHandler(database.ProjectRepo())
 
 	// index
 	chiRouter.Handle("/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -86,14 +85,17 @@ func newRouter(database database.Database, opts ...func(*router)) *chi.Mux {
 	chiRouter.Group(func(r chi.Router) {
 		r.Use(authMiddleware.authenticate)
 		r.Get("/me", userHandler.getMe())
-		r.Get("/org", organizationHandler.getOrganization())
-		r.Get("/experts", AvailableExpertHandler.getAllAvailableExperts()) // Assuming this is a method call without ()
-		r.Post("/experts", AvailableExpertHandler.recordAvailableExpert()) // Assuming this is a method call without ()
-		r.Get("/calls", CallTrackerHandler.getAllCallTrackers()) // Assuming this is a method call without ()
-		r.Post("/calls", CallTrackerHandler.recordCallTracker()) // Assuming this is a method call without ()
+		//r.Get("/org", organizationHandler.getOrganization())
+		r.Get("/expert-list", AvailableExpertHandler.getAllAvailableExperts())
+		r.Post("/make-expert", AvailableExpertHandler.recordAvailableExpert())
+		r.Get("/calls-list", CallTrackerHandler.getAllCallTrackers())
+		r.Post("/make-calls", CallTrackerHandler.recordCallTracker())
+		r.Get("/projects-list", ProjectHandler.getAllProjects())
+		r.Post("/make-project", ProjectHandler.recordProject())
 		r.Post("/signature", userHandler.recordSignature())
 		r.Delete("/experts/{expertID}", AvailableExpertHandler.deleteAvailableExpert())
 		r.Delete("/calls/{callTrackerID}", CallTrackerHandler.deleteCallTracker())
+		r.Delete("/projects/{projectID}", ProjectHandler.deleteProject())
 	})
 
 	return chiRouter

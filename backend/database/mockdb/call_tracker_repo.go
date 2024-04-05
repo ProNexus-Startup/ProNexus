@@ -3,6 +3,7 @@ package mockdb
 import (
     "github.com/rpupo63/ProNexus/backend/models"
     "errors"
+    "github.com/google/uuid"
 )
 
 type CallTrackerRepo struct {
@@ -23,6 +24,15 @@ func (r *CallTrackerRepo) SelectByOrganizationID(organizationID string) ([]model
 }
 
 func (r *CallTrackerRepo) Insert(organizationID string, callTracker models.CallTracker) error {
+    // Generate a new UUID if the callTracker does not have an ID yet.
+    if callTracker.ID == "" {
+        newUUID, err := uuid.NewUUID()
+        if err != nil {
+            return err // Return an error if failed to generate UUID
+        }
+        callTracker.ID = newUUID.String()
+    }
+
     found := false
     for i, entry := range *r.organizationIDToCallTracker {
         if entry.OrganizationID == organizationID {
@@ -31,15 +41,18 @@ func (r *CallTrackerRepo) Insert(organizationID string, callTracker models.CallT
             break
         }
     }
+
     if !found {
         newOrganizationEntry := models.OrganizationIDAndCallTracker{
             OrganizationID: organizationID,
-            CallTracker: []models.CallTracker{callTracker},
+            CallTracker:    []models.CallTracker{callTracker},
         }
         *r.organizationIDToCallTracker = append(*r.organizationIDToCallTracker, newOrganizationEntry)
     }
+
     return nil
 }
+
 
 func (r *CallTrackerRepo) Delete(organizationID string, callTrackerID string) error {
     for i, entry := range *r.organizationIDToCallTracker {

@@ -13,7 +13,7 @@ import '../utils/persistence/secure_storage.dart';
 import '../utils/models/app_text_form_field.dart';
 import '../utils/extensions.dart';
 import '../utils/formatting/app_constants.dart';
-import '../utils/persistence/user_data.dart';
+import '../utils/BaseAPI.dart';
 //import 'home_page.dart';
 
 class UserRegisterPage extends StatefulWidget {
@@ -50,6 +50,7 @@ class _UserRegisterPageState extends State<UserRegisterPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Checking email availability...')),
       );
+      print(widget.org);
       // Use the text property to get the string value from the controllers
       var req = await _authAPI.signup(
           usernameController.text,
@@ -71,9 +72,8 @@ class _UserRegisterPageState extends State<UserRegisterPage> {
           print(req.statusCode);
           if (req.statusCode == 201 || req.statusCode == 200) {
             var data = jsonDecode(req.body);
-            String token = data['Token'];
+            String token = data['token'];
             await SecureStorage().write('token', token);
-            print(token);
             if (!context.mounted) {
               return;
             }

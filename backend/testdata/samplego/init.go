@@ -9,8 +9,8 @@ import (
 func NewDB() mockdb.Database {
 	// Directly initializing slices of the correct types
 	organizations := []models.Organization{
-		{ID: "org-id-1", Name: "Organization One", Token: "org-token-1"},
-		{ID: "org-id-2", Name: "Organization Two", Token: "org-token-2"},
+		{ID: "org-id-1", Name: "Organization One"},
+		{ID: "org-id-2", Name: "Organization Two"},
 	}
 
 	users := []models.User{
@@ -87,7 +87,7 @@ func NewDB() mockdb.Database {
 						"What topics will be discussed?",
 						"Any specific focus for the call?",
 					},
-					InviteSent:       1,
+					InviteSent:       true,
 					MeetingDate:      time.Now().Add(7 * 24 * time.Hour),
 					MeetingTime:      time.Now().Add(8 * 24 * time.Hour),
 					MeetingLength:    60,
@@ -100,6 +100,36 @@ func NewDB() mockdb.Database {
 		},
 	}
 
+	// Initializing projects
+	organizationIDToProject := []models.OrganizationIDAndProject{
+		{
+			OrganizationID: "org-id-1",
+			Project: []models.Project{
+				{
+					ID:             "project-id-1",
+					Name:           "Project One",
+					StartDate:      time.Now().Add(-7 * 24 * time.Hour), // Example: a week ago
+					Target:         "Project Target One",
+					CallsCompleted: 5,
+					Status:         "In Progress",
+				},
+			},
+		},
+		{
+			OrganizationID: "org-id-2",
+			Project: []models.Project{
+				{
+					ID:             "project-id-2",
+					Name:           "Project Two",
+					StartDate:      time.Now().Add(-14 * 24 * time.Hour), // Example: two weeks ago
+					Target:         "Project Target Two",
+					CallsCompleted: 3,
+					Status:         "Completed",
+				},
+			},
+		},
+	}
+
 	// Correcting the call to mockdb.New with proper types and order
-	return mockdb.New(&organizations, &users, &organizationIDToAvailableExpert, &organizationIDToCallTracker)
+	return mockdb.New(&organizations, &users, &organizationIDToAvailableExpert, &organizationIDToCallTracker, &organizationIDToProject)
 }

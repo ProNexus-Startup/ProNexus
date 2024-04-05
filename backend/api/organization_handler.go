@@ -22,9 +22,10 @@ type organizationHandler struct {
 	userRepo            database.UserRepo
 	callTrackerRepo     database.CallTrackerRepo
 	availableExpertRepo database.AvailableExpertRepo
+    projectRepo         database.ProjectRepo
 }
 
-func newOrganizationHandler(organizationRepo database.OrganizationRepo, userRepo database.UserRepo,  callTrackerRepo database.CallTrackerRepo, availableExpertRepo database.AvailableExpertRepo) organizationHandler {
+func newOrganizationHandler(organizationRepo database.OrganizationRepo, userRepo database.UserRepo,  callTrackerRepo database.CallTrackerRepo, availableExpertRepo database.AvailableExpertRepo, projectRepo database.ProjectRepo) organizationHandler {
     logger := log.With().Str("handlerName", "organizationHandler").Logger()
 
     return organizationHandler{
@@ -34,10 +35,11 @@ func newOrganizationHandler(organizationRepo database.OrganizationRepo, userRepo
         userRepo:            userRepo,
         callTrackerRepo:     callTrackerRepo,
 		availableExpertRepo: availableExpertRepo,
+        projectRepo:         projectRepo,
     }
 }
 
-
+/*
 func (h organizationHandler) getOrganization() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
@@ -56,7 +58,7 @@ func (h organizationHandler) getOrganization() http.HandlerFunc {
 		h.responder.writeJSON(w, organization)
 		return
 	}
-}
+}*/
 
 func (h organizationHandler) makeOrg() http.HandlerFunc {
     return func(w http.ResponseWriter, r *http.Request) {
@@ -94,6 +96,6 @@ func (h organizationHandler) makeOrg() http.HandlerFunc {
             return
         }
 
-        h.responder.writeJSON(w, map[string]string{"status": "success", "message": "organization created successfully"})
+        h.responder.writeJSON(w, map[string]string{"status": "success", "message": "organization created successfully", "organizationID": newOrg.ID})
     }
 }

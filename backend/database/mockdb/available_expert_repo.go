@@ -3,6 +3,7 @@ package mockdb
 import (
     "github.com/rpupo63/ProNexus/backend/models"
     "errors"
+    "github.com/google/uuid"
 )
 
 type AvailableExpertRepo struct {
@@ -23,6 +24,14 @@ func (r *AvailableExpertRepo) SelectByOrganizationID(organizationID string) ([]m
 }
 
 func (r *AvailableExpertRepo) Insert(organizationID string, availableExpert models.AvailableExpert) error {
+    if availableExpert.ID == "" {
+        newUUID, err := uuid.NewUUID()
+        if err != nil {
+            return err // Return an error if failed to generate UUID
+        }
+        availableExpert.ID = newUUID.String()
+    }
+    
     found := false
     for i, entry := range *r.organizationIDToAvailableExpert {
         if entry.OrganizationID == organizationID {

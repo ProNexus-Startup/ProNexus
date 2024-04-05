@@ -12,23 +12,23 @@ import (
 	"strings"
 )
 
-type callTrackerHandler struct {
-	responder      responder
-	logger         zerolog.Logger
-	callTrackerRepo database.CallTrackerRepo
+type projectHandler struct {
+	responder   responder
+	logger      zerolog.Logger
+	projectRepo database.ProjectRepo
 }
 
-func newCallTrackerHandler(callTrackerRepo database.CallTrackerRepo) callTrackerHandler {
-	logger := log.With().Str("handlerName", "callTrackerHandler").Logger()
+func newProjectHandler(projectRepo database.ProjectRepo) projectHandler {
+	logger := log.With().Str("handlerName", "projectHandler").Logger()
 
-	return callTrackerHandler{
+	return projectHandler{
 		responder:      newResponder(logger),
 		logger:         logger,
-		callTrackerRepo: callTrackerRepo,
+		projectRepo: projectRepo,
 	}
 }
 
-func (h callTrackerHandler) recordCallTracker() http.HandlerFunc {
+func (h projectHandler) recordProject() http.HandlerFunc {
     return func(w http.ResponseWriter, r *http.Request) {
         token := r.Header.Get("Authorization")
         if token == "" {
@@ -45,14 +45,14 @@ func (h callTrackerHandler) recordCallTracker() http.HandlerFunc {
             return
         }
         
-		var callTracker models.CallTracker
-		if err := json.NewDecoder(r.Body).Decode(&callTracker); err != nil {
-			h.responder.writeError(w, errs.Malformed("call tracker"))
+		var project models.Project
+		if err := json.NewDecoder(r.Body).Decode(&project); err != nil {
+			h.responder.writeError(w, errs.Malformed("project"))
 			return
 		}
 
-		if err := h.callTrackerRepo.Insert(user.OrganizationID, callTracker); err != nil {
-			h.responder.writeError(w, fmt.Errorf("error inserting call tracker: %v", err))
+		if err := h.projectRepo.Insert(user.OrganizationID, project); err != nil {
+			h.responder.writeError(w, fmt.Errorf("error inserting project: %v", err))
 			return
 		}
 
@@ -63,7 +63,7 @@ func (h callTrackerHandler) recordCallTracker() http.HandlerFunc {
 }
 
 
-func (h callTrackerHandler) deleteCallTracker() http.HandlerFunc {
+func (h projectHandler) deleteProject() http.HandlerFunc {
     return func(w http.ResponseWriter, r *http.Request) {
         token := r.Header.Get("Authorization")
         if token == "" {
@@ -80,14 +80,14 @@ func (h callTrackerHandler) deleteCallTracker() http.HandlerFunc {
             return
         }
         
-		callTrackerID := r.URL.Query().Get("ID")
-		if callTrackerID == "" {
+		projectID := r.URL.Query().Get("ID")
+		if projectID == "" {
 			h.responder.writeError(w, fmt.Errorf("ID is required"))
 			return
 		}
 
-		if err := h.callTrackerRepo.Delete(user.OrganizationID, callTrackerID); err != nil {
-			h.responder.writeError(w, fmt.Errorf("error deleting tracked call: %v", err))
+		if err := h.projectRepo.Delete(user.OrganizationID, projectID); err != nil {
+			h.responder.writeError(w, fmt.Errorf("error deleting project: %v", err))
 			return
 		}
 
@@ -97,14 +97,14 @@ func (h callTrackerHandler) deleteCallTracker() http.HandlerFunc {
 			Message string `json:"message"`
 		}{
 			Status:  http.StatusOK,
-			Message: "Tracked call deleted successfully",
+			Message: "Project deleted successfully",
 		}
 		h.responder.writeJSON(w, response)
 	}
 }
 
 
-func (h callTrackerHandler) getAllCallTrackers() http.HandlerFunc {
+func (h projectHandler) getAllProjects() http.HandlerFunc {
     return func(w http.ResponseWriter, r *http.Request) {
         token := r.Header.Get("Authorization")
         if token == "" {
@@ -121,14 +121,14 @@ func (h callTrackerHandler) getAllCallTrackers() http.HandlerFunc {
             return
         }
         
-        var callTrackers []models.CallTracker
-        callTrackers, err = h.callTrackerRepo.SelectByOrganizationID(user.OrganizationID)
+        var projects []models.Project
+        projects, err = h.projectRepo.SelectByOrganizationID(user.OrganizationID)
 
         if err != nil {
-            h.responder.writeError(w, fmt.Errorf("error fetching call trackers: %v", err))
+            h.responder.writeError(w, fmt.Errorf("error fetching project: %v", err))
             return
         }
 
-        h.responder.writeJSON(w, callTrackers)
+        h.responder.writeJSON(w, projects)
     }
 }

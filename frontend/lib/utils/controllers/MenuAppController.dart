@@ -11,3 +11,8 @@ class MenuAppController extends ChangeNotifier {
     }
   }
 }
+
+enum AppPage {
+  availableExperts,
+  callTracker,
+}

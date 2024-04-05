@@ -2,6 +2,7 @@ package api
 
 import (
 	"fmt"
+	"os" // Import added to use os.Getenv
 	"github.com/rpupo63/ProNexus/backend/models"
 	"github.com/golang-jwt/jwt/v5"
 	"time"
@@ -12,7 +13,10 @@ type accessClaims struct {
 	jwt.RegisteredClaims
 }
 
-func newAccess(user models.User, tokenSecret string) (string, error) {
+func newAccess(user models.User) (string, error) {
+    // Retrieve token secret from environment variable
+    tokenSecret := os.Getenv("TOKEN_SECRET")
+    
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, accessClaims{
 		User: user,
 		RegisteredClaims: jwt.RegisteredClaims{
@@ -28,7 +32,10 @@ func newAccess(user models.User, tokenSecret string) (string, error) {
 	return signedToken, nil
 }
 
-func getTokenRemainingValidity(tokenString, tokenSecret string) (time.Duration, error) {
+func getTokenRemainingValidity(tokenString string) (time.Duration, error) {
+    // Retrieve token secret from environment variable
+    tokenSecret := os.Getenv("TOKEN_SECRET")
+    
 	token, err := jwt.ParseWithClaims(tokenString, &accessClaims{}, func(token *jwt.Token) (interface{}, error) {
 		return []byte(tokenSecret), nil
 	})
@@ -45,9 +52,10 @@ func getTokenRemainingValidity(tokenString, tokenSecret string) (time.Duration, 
 	}
 }
 
-// validateToken takes a token string and your token secret, validates the token,
-// and returns the User object from the token claims if valid.
-func validateToken(tokenString, tokenSecret string) (models.User, error) {
+func validateToken(tokenString string) (models.User, error) {
+    // Retrieve token secret from environment variable
+    tokenSecret := os.Getenv("TOKEN_SECRET")
+    
 	var noUser models.User // Used to return in case of error
 
 	// Parse the token with the claims.

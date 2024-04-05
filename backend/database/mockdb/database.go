@@ -10,6 +10,7 @@ type Database struct {
 	organizationRepo    database.OrganizationRepo
 	callTrackerRepo     database.CallTrackerRepo
 	availableExpertRepo database.AvailableExpertRepo
+	projectRepo			database.ProjectRepo
 }
 
 func New(
@@ -17,13 +18,16 @@ func New(
 	users                           *[]models.User,
 	organizationIDToAvailableExpert *[]models.OrganizationIDAndAvailableExpert,
 	organizationIDToCallTracker     *[]models.OrganizationIDAndCallTracker,
+	organizationIDToProject			*[]models.OrganizationIDAndProject,
 ) Database {
 	return Database{
-		organizationRepo:    NewOrganizationRepo(organizations), // Correct call to a constructor function
-		userRepo:            NewUserRepo(users), // Corrected
-		availableExpertRepo: NewAvailableExpertRepo(organizationIDToAvailableExpert), // Corrected
+		organizationRepo:    NewOrganizationRepo(organizations),
+		userRepo:            NewUserRepo(users),
+		availableExpertRepo: NewAvailableExpertRepo(organizationIDToAvailableExpert),
 		callTrackerRepo:     NewCallTrackerRepo(organizationIDToCallTracker),
+		projectRepo:		 NewProjectRepo(organizationIDToProject),
 	}
+	
 }
 
 func (d Database) UserRepo() database.UserRepo {
@@ -40,6 +44,10 @@ func (d Database) CallTrackerRepo() database.CallTrackerRepo {
 
 func (d Database) AvailableExpertRepo() database.AvailableExpertRepo {
 	return d.availableExpertRepo
+}
+
+func (d Database) ProjectRepo() database.ProjectRepo {
+	return d.projectRepo
 }
 
 // Assuming MigrateStep is required for interface compliance or future use.

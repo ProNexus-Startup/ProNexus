@@ -23,38 +23,34 @@ func newUserHandler(userRepo database.UserRepo) userHandler {
     logger := log.With().Str("handlerName", "userHandler").Logger()
 
     return userHandler{
-        responder: newResponder(logger),
-        logger:    logger,
-        userRepo:  userRepo,
+        responder:   newResponder(logger),
+        logger:      logger,
+        userRepo:    userRepo,
     }
 }
 
 func (h userHandler) getMe() http.HandlerFunc {
     return func(w http.ResponseWriter, r *http.Request) {
-        // Extract the token from the Authorization header.
-        authHeader := r.Header.Get("Authorization")
-        token := strings.TrimPrefix(authHeader, "Bearer ")
-
+        token := r.Header.Get("Authorization")
         if token == "" {
-            h.responder.writeError(w, errs.Unauthorized)
+            h.responder.writeError(w, fmt.Errorf("no Authorization header provided"))
             return
         }
 
-        // Validate the token and extract the user information.
-        user, err := validateToken(token, "YourTokenSecret") // Replace "YourTokenSecret" with your actual secret.
+        // Assuming token format is "Bearer <token>"
+        // This strips the "Bearer " prefix from the token
+        token = strings.TrimPrefix(token, "Bearer ")
+
+        // Now passing the token and the tokenSecret to validateToken
+        user, err := validateToken(token)
         if err != nil {
-            h.responder.writeError(w, errs.Unauthorized)
+            h.responder.writeError(w, fmt.Errorf("invalid token: %v", err))
             return
         }
 
-        // No need to fetch the user by ID if your validateToken function already returns the user details embedded in the token.
-        // If you need to ensure the user's details are up-to-date, you can fetch fresh data here.
-
-        // Respond with the user information.
         h.responder.writeJSON(w, user)
     }
 }
-
 
 func (h userHandler) getUsers() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -85,13 +81,14 @@ func (h userHandler) recordSignature() http.HandlerFunc {
 		if err := json.NewDecoder(r.Body).Decode(&signatureEvent); err != nil {
 			h.responder.writeError(w, errs.Malformed("signature event"))
 			return
+
 		}
 		if signatureEvent.Date.IsZero() {
 			signatureEvent.Date = time.Now()
 		}
 
 		if err := h.userRepo.Update(models.User{ID: userID, SignedAt: signatureEvent.Date}); err != nil {
-			h.responder.writeError(w, fmt.Errorf("error inserting user: %v", err))
+			h.responder.writeError(w, fmt.Errorf("error inserting medication: %v", err))
 			return
 		}
 

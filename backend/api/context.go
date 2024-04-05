@@ -5,40 +5,40 @@ import (
 	"errors"
 )
 
-type organizationIDKeyType string
+type keyType string
 
-const organizationIDKey organizationIDKeyType = "organizationID"
+const (
+	userIDKey      keyType = "userID"
+	organizationIDKey keyType = "organizationID"
+)
 
-func ctxWithOrganizationID(ctx context.Context, organizationID string) context.Context {
-	return context.WithValue(ctx, organizationIDKey, organizationID)
-}
-
-func ctxGetOrganizationID(ctx context.Context) (string, error) {
-	if ctxOrganizationID := ctx.Value(organizationIDKey); ctxOrganizationID == nil {
-		return "", errors.New("ctxGetOrganizationID: key not found in context")
-	} else if organizationIDAsString, ok := ctxOrganizationID.(string); !ok {
-		return "", errors.New("ctxGetOrganizationID: value for organization is not of type `organization`")
-	} else {
-		return organizationIDAsString, nil
-	}
-}
-
-type userIDKeyType string
-
-const userIDKey userIDKeyType = "userID"
-
-// ctxWithUserID returns a new context with the given user ID included.
+// ctxWithUserID adds a user ID to the context
 func ctxWithUserID(ctx context.Context, userID string) context.Context {
 	return context.WithValue(ctx, userIDKey, userID)
 }
 
-// ctxGetUserID retrieves the user ID from the context, if available.
+// ctxWithOrganizationID adds an organization ID to the context
+func ctxWithOrganizationID(ctx context.Context, organizationID string) context.Context {
+	return context.WithValue(ctx, organizationIDKey, organizationID)
+}
+
+// ctxGetUserID retrieves a user ID from the context
 func ctxGetUserID(ctx context.Context) (string, error) {
-	if ctxUserID := ctx.Value(userIDKey); ctxUserID == nil {
-		return "", errors.New("ctxGetUserID: key not found in context")
-	} else if userIDAsString, ok := ctxUserID.(string); !ok {
-		return "", errors.New("ctxGetUserID: value for userID is not of type string")
+	return ctxGetStringValue(ctx, userIDKey)
+}
+
+// ctxGetOrganizationID retrieves an organization ID from the context
+func ctxGetOrganizationID(ctx context.Context) (string, error) {
+	return ctxGetStringValue(ctx, organizationIDKey)
+}
+
+// ctxGetStringValue is a helper function to retrieve string values from the context by key
+func ctxGetStringValue(ctx context.Context, key keyType) (string, error) {
+	if ctxValue := ctx.Value(key); ctxValue == nil {
+		return "", errors.New("key not found in context")
+	} else if valueAsString, ok := ctxValue.(string); !ok {
+		return "", errors.New("value is not of type `string`")
 	} else {
-		return userIDAsString, nil
+		return valueAsString, nil
 	}
 }

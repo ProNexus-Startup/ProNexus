@@ -8,6 +8,7 @@ type OrganizationIDAndAvailableExpert struct {
 type AvailableExpert struct {
 	ID                 string    `json:"expertId" db:"expert_id"`
 	Name               string    `json:"name" db:"name"`
+	Project			   string    `json: "project" db: "project"`
 	Favorite           bool      `json:"favorite" db:"favorite"`
 	Title              string    `json:"title" db:"title"`
 	Company            string    `json:"company" db:"company"`

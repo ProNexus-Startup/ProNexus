@@ -9,6 +9,7 @@ import (
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"net/http"
+	"strings"
 )
 
 type availableExpertHandler struct {
@@ -28,22 +29,29 @@ func newAvailableExpertHandler(availableExpertRepo database.AvailableExpertRepo)
 }
 
 func (h availableExpertHandler) recordAvailableExpert() http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		ctx := r.Context()
-		organizationID, err := ctxGetOrganizationID(ctx)
-		if err != nil {
-			h.responder.writeError(w, fmt.Errorf("error getting organizationID: %v", err))
-			return
-		}
+    return func(w http.ResponseWriter, r *http.Request) {
+        token := r.Header.Get("Authorization")
+        if token == "" {
+            h.responder.writeError(w, fmt.Errorf("no Authorization header provided"))
+            return
+        }
 
+        token = strings.TrimPrefix(token, "Bearer ")
+
+        // Now passing the token and the tokenSecret to validateToken
+        user, err := validateToken(token)
+        if err != nil {
+            h.responder.writeError(w, fmt.Errorf("invalid token: %v", err))
+            return
+        }
+        
 		var availableExpert models.AvailableExpert
 		if err := json.NewDecoder(r.Body).Decode(&availableExpert); err != nil {
 			h.responder.writeError(w, errs.Malformed("available expert"))
 			return
 		}
 
-		// Inside availableExpertHandler.recordAvailableExpert()
-		if err := h.availableExpertRepo.Insert(organizationID, availableExpert); err != nil {
+		if err := h.availableExpertRepo.Insert(user.OrganizationID, availableExpert); err != nil {
 			h.responder.writeError(w, fmt.Errorf("error inserting available expert: %v", err))
 			return
 		}
@@ -54,22 +62,31 @@ func (h availableExpertHandler) recordAvailableExpert() http.HandlerFunc {
 	}
 }
 
-func (h availableExpertHandler) deleteAvailableExpert() http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		ctx := r.Context()
-		organizationID, err := ctxGetOrganizationID(ctx)
-		if err != nil {
-			h.responder.writeError(w, fmt.Errorf("error getting organizationID: %v", err))
-			return
-		}
 
+func (h availableExpertHandler) deleteAvailableExpert() http.HandlerFunc {
+    return func(w http.ResponseWriter, r *http.Request) {
+        token := r.Header.Get("Authorization")
+        if token == "" {
+            h.responder.writeError(w, fmt.Errorf("no Authorization header provided"))
+            return
+        }
+
+        token = strings.TrimPrefix(token, "Bearer ")
+
+        // Now passing the token and the tokenSecret to validateToken
+        user, err := validateToken(token)
+        if err != nil {
+            h.responder.writeError(w, fmt.Errorf("invalid token: %v", err))
+            return
+        }
+        
 		availableExpertID := r.URL.Query().Get("ID")
 		if availableExpertID == "" {
 			h.responder.writeError(w, fmt.Errorf("ID is required"))
 			return
 		}
 
-		if err := h.availableExpertRepo.Delete(organizationID, availableExpertID); err != nil {
+		if err := h.availableExpertRepo.Delete(user.OrganizationID, availableExpertID); err != nil {
 			h.responder.writeError(w, fmt.Errorf("error deleting available expert: %v", err))
 			return
 		}
@@ -86,27 +103,32 @@ func (h availableExpertHandler) deleteAvailableExpert() http.HandlerFunc {
 	}
 }
 
+
 func (h availableExpertHandler) getAllAvailableExperts() http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		ctx := r.Context()
-		organizationID, err := ctxGetOrganizationID(ctx)
-		if err != nil {
-			h.responder.writeError(w, fmt.Errorf("error getting organizationID: %v", err))
-			return
-		}
+    return func(w http.ResponseWriter, r *http.Request) {
+        token := r.Header.Get("Authorization")
+        if token == "" {
+            h.responder.writeError(w, fmt.Errorf("no Authorization header provided"))
+            return
+        }
 
-		availableExpert, err := h.availableExpertRepo.SelectByOrganizationID(organizationID)
-		if err != nil {
-			h.responder.writeError(w, fmt.Errorf("error fetching available experts: %v", err))
-			return
-		}
+        token = strings.TrimPrefix(token, "Bearer ")
 
-		if len(availableExpert) == 0 {
-			h.responder.writeJSON(w, []struct{}{}) // return an empty array if no available expert found
-			return
-		}
+        // Now passing the token and the tokenSecret to validateToken
+        user, err := validateToken(token)
+        if err != nil {
+            h.responder.writeError(w, fmt.Errorf("invalid token: %v", err))
+            return
+        }
+        
+        var availableExperts []models.AvailableExpert
+        availableExperts, err = h.availableExpertRepo.SelectByOrganizationID(user.OrganizationID)
 
-		h.responder.writeJSON(w, availableExpert)
-	}
+        if err != nil {
+            h.responder.writeError(w, fmt.Errorf("error fetching available expert: %v", err))
+            return
+        }
+
+        h.responder.writeJSON(w, availableExperts)
+    }
 }
-

@@ -10,6 +10,7 @@ type OrganizationIDAndCallTracker struct {
 type CallTracker struct {
     ID           string    `json:"expertId" db:"expert_id"`
     Name               string    `json:"name" db:"name"`
+    Project			   string    `json: "project" db: "project"`
     Favorite           bool      `json:"favorite" db:"favorite"`
     Title              string    `json:"title" db:"title"`
     Company            string    `json:"company" db:"company"`
@@ -24,7 +25,7 @@ type CallTracker struct {
     ExpertNetworkName  string    `json:"expertNetworkName" db:"expert_network_name"`
     Cost               float64   `json:"cost" db:"cost"`
     ScreeningQuestions []string  `json:"screeningQuestions" db:"screening_questions"`
-    InviteSent         int      `json:"inviteSent" db:"invite_sent"`
+    InviteSent         bool      `json:"inviteSent" db:"invite_sent"`
     MeetingDate        time.Time `json:"meetingDate" db:"meeting_date"`
     MeetingTime        time.Time `json:"meetingTime" db:"meeting_time"`
     MeetingLength      int       `json:"meetingLength" db:"meeting_length"`

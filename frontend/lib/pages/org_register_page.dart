@@ -1,10 +1,13 @@
+import 'dart:convert';
+
 import 'package:admin/pages/user_register_page.dart';
+import 'package:admin/utils/persistence/secure_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../utils/persistence/screen_arguments.dart';
 import '../utils/models/app_text_form_field.dart';
 import '../utils/extensions.dart';
-import '../utils/persistence/user_data.dart';
+import '../utils/BaseAPI.dart';
 //import 'home_page.dart';
 
 class OrgRegisterPage extends StatefulWidget {
@@ -39,8 +42,12 @@ class _OrgRegisterPageState extends State<OrgRegisterPage> {
           print("context not mounted");
           return;
         }
+        var data = jsonDecode(req.body);
+        print(data);
+        String orgID = data['organizationID'];
+        await SecureStorage().write('organizationID', orgID);
         Navigator.pushNamed(context, UserRegisterPage.routeName,
-            arguments: ScreenArguments("", orgNameController.text));
+            arguments: ScreenArguments(orgID, "emptytoken"));
         const SnackBar(content: Text('Organization succesfully registered.'));
       } else {
         const SnackBar(content: Text('Problem registering.'));

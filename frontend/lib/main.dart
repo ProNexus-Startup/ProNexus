@@ -1,21 +1,22 @@
 //import 'dart:convert';
-import 'package:admin/pages/components/dashboard_screen.dart';
+import 'package:admin/pages/available_experts.dart';
 import 'package:admin/pages/org_register_page.dart';
+import 'package:admin/pages/projects_page.dart';
 import 'package:admin/pages/user_register_page.dart';
 import 'package:admin/utils/controllers/MenuAppController.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
+import 'utils/cards/user_card.dart';
 import 'utils/global_bloc.dart';
-import 'utils/persistence/user_data.dart';
+import 'utils/BaseAPI.dart';
 import 'utils/formatting/app_theme.dart';
-//import 'utils/login_stuff/secure_storage.dart';
 import 'pages/login_page.dart';
 //import 'pages/password_reset_request_page.dart';
 import 'utils/persistence/screen_arguments.dart';
 import 'pages/splash_page.dart';
 import 'dart:async';
-import 'pages/home_page.dart';
+import 'pages/components/page_wrapper.dart';
 
 int id = 0;
 
@@ -50,8 +51,12 @@ class ProNexus extends StatefulWidget {
 class _ProNexusState extends State<ProNexus> {
   final Map<String, Widget Function(ScreenArguments)> routeBuilders = {
     HomePage.routeName: (args) => HomePage(token: args.token),
-    DashboardScreen.routeName: (args) => DashboardScreen(token: args.token),
-    UserRegisterPage.routeName: (args) => UserRegisterPage(org: args.token)
+    AvailableExpertsDashboard.routeName: (args) =>
+        AvailableExpertsDashboard(token: args.token),
+    //CallTrackerDashboard.routeName: (args) =>
+    //CallTrackerDashboard(token: args.token),
+    UserRegisterPage.routeName: (args) => UserRegisterPage(org: args.token),
+    ProjectPage.routeName: (args) => ProjectPage(token: args.token),
   };
 
   Key key = UniqueKey();
@@ -84,7 +89,7 @@ class _ProNexusState extends State<ProNexus> {
         assert(false, 'Need to implement ${settings.name}');
         return null;
       },
-      theme: wgerDarkTheme,
+      theme: wgerLightTheme,
     );
   }
 }
