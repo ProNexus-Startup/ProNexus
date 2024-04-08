@@ -2,6 +2,7 @@ class AvailableExpert {
   bool isSelected = false; // Add this line
   final String expertId;
   final String name;
+  final String projectId;
   bool favorite;
   final String title;
   final String company;
@@ -21,6 +22,7 @@ class AvailableExpert {
     required this.isSelected,
     required this.expertId,
     required this.name,
+    required this.projectId,
     required this.favorite,
     required this.title,
     required this.company,
@@ -50,6 +52,7 @@ class AvailableExpert {
       isSelected: false,
       expertId: json['expertId'],
       name: json['name'],
+      projectId: json['projectId'],
       favorite: json['favorite'],
       title: json['title'],
       company: json['company'],

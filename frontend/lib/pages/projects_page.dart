@@ -1,10 +1,11 @@
 import 'dart:convert';
-
+import 'package:admin/pages/components/page_wrapper.dart';
 import 'package:admin/utils/cards/project_card.dart';
 import 'package:admin/utils/BaseAPI.dart';
 import 'package:admin/utils/global_bloc.dart';
+import 'package:admin/utils/persistence/screen_arguments.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart'; // Add this import for date formatting
+import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 
@@ -31,8 +32,8 @@ class _ProjectPageState extends State<ProjectPage> {
     globalBloc.onUserLogin(widget.token);
   }
 
-  Future<void> postProject(GlobalBloc globalBloc, String name, String startDate,
-      String target, String status) async {
+  Future<void> postProject(
+      String name, DateTime startDate, String target, String status) async {
     AuthAPI _authAPI = AuthAPI();
     final response = await http.post(
       _authAPI.makeProjectPath,
@@ -42,30 +43,29 @@ class _ProjectPageState extends State<ProjectPage> {
       },
       body: jsonEncode({
         'projectId': '', // This is a unique identifier for the project
-        'name': 'Eco Restoration', // Name of the project
-        'startDate': '2024-04-01T00:00:00Z', // Start date in ISO 8601 format
-        'target': 'Reforest 100 acres', // The target goal of the project
+        'name': name, // Name of the project
+        'startDate': startDate
+            .toUtc()
+            .toIso8601String(), //startDate, // Start date in ISO 8601 format
+        'target': target, // The target goal of the project
         'callsCompleted':
-            20, // Number of calls or actions completed towards the project
-        'status': 'In Progress', // The current status of the project
+            0, // Number of calls or actions completed towards the project
+        'status': status, // The current status of the project
       }),
     );
 
     if (response.statusCode == 200) {
       // Handle the response body if the call was successful
       print('Success: ${response.body}');
-      globalBloc.onUserLogin(widget.token);
+      _loadUserData();
     } else {
       // Handle the error
       print('Failed to post project. StatusCode: ${response.statusCode}');
     }
   }
 
-  // Inside ProjectPage class
-
   void _showAddProjectDialog(
     BuildContext context,
-    GlobalBloc globalBloc,
   ) {
     TextEditingController projectNameController = TextEditingController();
     DateTime? startDate; // Changed to DateTime to store date object
@@ -160,12 +160,8 @@ class _ProjectPageState extends State<ProjectPage> {
                 TextButton(
                   child: Text('Add'),
                   onPressed: () {
-                    postProject(
-                        globalBloc,
-                        projectNameController.text,
-                        startDate!.toIso8601String(),
-                        targetController.text,
-                        selectedStatus.toString());
+                    postProject(projectNameController.text, startDate!,
+                        targetController.text, selectedStatus.toString());
                     Navigator.of(context).pop();
                   },
                 ),
@@ -179,22 +175,23 @@ class _ProjectPageState extends State<ProjectPage> {
 
   @override
   Widget build(BuildContext context) {
-    final GlobalBloc globalBloc =
-        Provider.of<GlobalBloc>(context, listen: false);
+    final GlobalBloc globalBloc = Provider.of<GlobalBloc>(context);
     List<Project> projectList = globalBloc.projectList;
 
     return Scaffold(
       appBar: AppBar(
         title: Text('All Projects'),
+        automaticallyImplyLeading: false,
       ),
       body: ListView.builder(
         itemCount: projectList.length,
         itemBuilder: (context, index) {
-          return ProjectTile(project: projectList[index]);
+          print(projectList[index].projectId);
+          return ProjectTile(project: projectList[index], token: widget.token);
         },
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () => _showAddProjectDialog(context, globalBloc),
+        onPressed: () => _showAddProjectDialog(context),
         child: Icon(Icons.add),
         backgroundColor: Colors.green,
       ),
@@ -204,30 +201,52 @@ class _ProjectPageState extends State<ProjectPage> {
 
 class ProjectTile extends StatelessWidget {
   final Project project;
+  final String token;
 
   const ProjectTile({
     required this.project,
+    required this.token,
     Key? key,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      child: ListTile(
-        title: Text(project.name),
-        subtitle: Text(
-            'Start date: ${DateFormat('MM/dd/yyyy').format(project.startDate)}\nTarget: ${project.target}\nCalls completed: ${project.callsCompleted}'),
-        trailing: ElevatedButton(
-          onPressed: () {
-            // Add your onPressed code here!
-          },
-          child: Text(project.status ?? "Missing Status"),
-          style: ButtonStyle(
-            backgroundColor: MaterialStateProperty.resolveWith<Color>(
-              (Set<MaterialState> states) {
-                if (project.status == 'Open') return Colors.green;
-                return Colors.grey; // Use the correct color for closed status
-              },
+    final GlobalBloc globalBloc =
+        Provider.of<GlobalBloc>(context, listen: false);
+
+    return InkWell(
+      onTap: () {
+        globalBloc.setProjectIdFilter(project.projectId);
+        Navigator.pushReplacementNamed(context, HomePage.routeName,
+            arguments: ScreenArguments(token, ""));
+      },
+      child: Card(
+        child: ListTile(
+          title: Text(project.name),
+          subtitle: Text(
+              'Start date: ${DateFormat('MM/dd/yyyy').format(project.startDate)}\nTarget: ${project.target ?? "Whatever"}\nCalls completed: ${project.callsCompleted}'),
+          trailing: ElevatedButton(
+            onPressed: () {
+              // Your existing button press logic here
+            },
+            child: Text(project.status ?? "Missing Status"),
+            style: ButtonStyle(
+              backgroundColor: MaterialStateProperty.resolveWith<Color>(
+                (Set<MaterialState> states) {
+                  // Define colors based on project status
+                  switch (project.status) {
+                    case 'Open':
+                      return Colors.green; // Green for Open
+                    case 'In Progress':
+                      return Colors.orange; // Orange for In Progress
+                    case 'Complete':
+                      return Colors.blue; // Blue for Complete
+                    default:
+                      return Colors
+                          .grey; // Default color for unspecified or missing status
+                  }
+                },
+              ),
             ),
           ),
         ),
@@ -235,5 +254,3 @@ class ProjectTile extends StatelessWidget {
     );
   }
 }
-
-// Ensure your Project class is correctly defined as before

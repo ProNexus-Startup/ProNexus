@@ -8,9 +8,9 @@ type OrganizationIDAndCallTracker struct {
 }
 
 type CallTracker struct {
-    ID           string    `json:"expertId" db:"expert_id"`
+    ID                 string    `json:"expertId" db:"expert_id"`
     Name               string    `json:"name" db:"name"`
-    Project			   string    `json: "project" db: "project"`
+    ProjectID		   string    `json: "projectId" db: "project_id"`
     Favorite           bool      `json:"favorite" db:"favorite"`
     Title              string    `json:"title" db:"title"`
     Company            string    `json:"company" db:"company"`

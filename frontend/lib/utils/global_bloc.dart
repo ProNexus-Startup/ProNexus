@@ -10,6 +10,8 @@ class GlobalBloc with ChangeNotifier {
   bool favoriteFilter = false;
   String geographyFilter = '';
   String availabilityFilter = '';
+  // Adding a projectId filter variable
+  String projectIdFilter = '';
 
   // Dummy filter maps added to define statusFilters, angleFilters, geographyFilters, and expertNetworkFilters
   // Adjust these maps according to your actual filters' requirements
@@ -30,6 +32,12 @@ class GlobalBloc with ChangeNotifier {
 
   void setAvailabilityFilter(String value) {
     availabilityFilter = value;
+    notifyListeners();
+  }
+
+  // Method to set the projectIdFilter
+  void setProjectIdFilter(String value) {
+    projectIdFilter = value;
     notifyListeners();
   }
 
@@ -77,15 +85,29 @@ class GlobalBloc with ChangeNotifier {
   Future<void> onUserLogin(String token) async {
     AuthAPI _authAPI = AuthAPI();
 
+    // Fetching data from the API
     List<AvailableExpert> fetchedExperts = await _authAPI.getExperts(token);
     List<CallTracker> fetchedCalls = await _authAPI.getCalls(token);
     List<Project> fetchedProjects = await _authAPI.getProjects(token);
 
-    User user = await _authAPI.getUser(token);
+    // Apply filtering based on the projectId
+    if (projectIdFilter.isNotEmpty) {
+      fetchedExperts = fetchedExperts
+          .where((expert) => expert.projectId == projectIdFilter)
+          .toList();
+      fetchedCalls = fetchedCalls
+          .where((call) => call.projectId == projectIdFilter)
+          .toList();
+    }
+
+    // Assigning filtered lists to the global state
     this.expertList = fetchedExperts;
     this.callList = fetchedCalls;
     this.projectList = fetchedProjects;
+
+    User user = await _authAPI.getUser(token);
     this.currentUser = user;
+
     notifyListeners();
   }
 

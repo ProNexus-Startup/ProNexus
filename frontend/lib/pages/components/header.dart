@@ -16,7 +16,7 @@ class Header extends StatelessWidget {
     return Row(
       children: [
         // This condition checks if it's mobile or not desktop and then shows the menu icon
-        if (Responsive.isMobile(context) || !Responsive.isDesktop(context))
+        if (!Responsive.isDesktop(context))
           IconButton(
             icon: Icon(Icons.menu), // The three-bar hamburger icon
             onPressed: () {
