@@ -14,7 +14,6 @@ type accessClaims struct {
 }
 
 func newAccess(user models.User) (string, error) {
-    // Retrieve token secret from environment variable
     tokenSecret := os.Getenv("TOKEN_SECRET")
     
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, accessClaims{
