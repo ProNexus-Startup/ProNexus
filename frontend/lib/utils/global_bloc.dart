@@ -1,9 +1,9 @@
-import 'package:admin/utils/cards/call_tracker_card.dart';
-import 'package:admin/utils/cards/project_card.dart';
-import 'package:admin/utils/cards/user_card.dart';
+import 'package:admin/utils/models/call_tracker.dart';
+import 'package:admin/utils/models/project.dart';
+import 'package:admin/utils/models/user.dart';
 import 'package:flutter/material.dart';
 import 'BaseAPI.dart';
-import "cards/available_expert_card.dart";
+import "models/available_expert.dart";
 
 class GlobalBloc with ChangeNotifier {
   // Example filter variables

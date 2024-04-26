@@ -7,7 +7,6 @@ import (
 )
 
 func NewDB() mockdb.Database {
-	// Directly initializing slices of the correct types
 	organizations := []models.Organization{
 		{ID: "org-id-1", Name: "Organization One"},
 		{ID: "org-id-2", Name: "Organization Two"},
@@ -39,25 +38,24 @@ func NewDB() mockdb.Database {
 			OrganizationID: "org-id-1",
 			AvailableExpert: []models.AvailableExpert{
 				{
-					ID:                "expert-id-1",
-					Name:              "Expert One",
-					Favorite:          true,
-					Title:             "Expert Title One",
-					Company:           "Expert Company One",
-					YearsAtCompany:    "2",
-					Description:       "Description of Expert One",
-					Geography:         "Location One",
-					Angle:             "Angle One",
-					Status:            "Available",
-					AIAssessment:      85,
-					Comments:          "Comments on Expert One",
-					Availability:      "Available Next Week",
-					ExpertNetworkName: "Network One",
-					Cost:              200.00,
-					ScreeningQuestions: []string{
-						"What is your field of expertise?",
-						"How many years of experience do you have?",
-					},
+					ID:                 "expert-id-1",
+					Name:               "Expert One",
+					Favorite:           true,
+					Title:              "Expert Title One",
+					Company:            "Expert Company One",
+					CompanyType:        "Type One",
+					YearsAtCompany:     "2",
+					Description:        "Description of Expert One",
+					Geography:          "Location One",
+					Angle:              "Angle One",
+					Status:             "Available",
+					AIAssessment:       85,
+					Comments:           "Comments on Expert One",
+					Availability:       "Available Next Week",
+					ExpertNetworkName:  "Network One",
+					Cost:               200.00,
+					ScreeningQuestions: []string{"What is your field of expertise?", "How many years of experience do you have?"},
+					DateAddedExpert:    time.Now(),
 				},
 			},
 		},
@@ -73,6 +71,7 @@ func NewDB() mockdb.Database {
 					Favorite:          false,
 					Title:             "Title One",
 					Company:           "Company One",
+					CompanyType:       "Type One",
 					YearsAtCompany:    5,
 					Description:       "Description of Call Tracker One",
 					Geography:         "Location One",
@@ -83,24 +82,19 @@ func NewDB() mockdb.Database {
 					Availability:      "Next Month",
 					ExpertNetworkName: "Network for Call Tracker One",
 					Cost:              500.00,
-					ScreeningQuestions: []string{
-						"What topics will be discussed?",
-						"Any specific focus for the call?",
-					},
-					InviteSent:       true,
-					MeetingDate:      time.Now().Add(7 * 24 * time.Hour),
-					MeetingTime:      time.Now().Add(8 * 24 * time.Hour),
-					MeetingLength:    60,
-					CompanyType:      "Type One",
-					PaidStatus:       true,
-					QuoteAttribution: "Attribution One",
-					Rating:           4,
+					ScreeningQuestions: []string{"What topics will be discussed?", "Any specific focus for the call?"},
+					DateAddedExpert:   time.Now(),
+					DateAddedCall:     time.Now(),
+					InviteSent:        true,
+					MeetingStartDate:  time.Now().Add(7 * 24 * time.Hour),
+					MeetingEndDate:    time.Now().Add(8 * 24 * time.Hour),
+					PaidStatus:        true,
+					Rating:            4,
 				},
 			},
 		},
 	}
 
-	// Initializing projects
 	organizationIDToProject := []models.OrganizationIDAndProject{
 		{
 			OrganizationID: "org-id-1",
@@ -108,7 +102,7 @@ func NewDB() mockdb.Database {
 				{
 					ID:             "project-id-1",
 					Name:           "Project One",
-					StartDate:      time.Now().Add(-7 * 24 * time.Hour), // Example: a week ago
+					StartDate:      time.Now().Add(-7 * 24 * time.Hour),
 					Target:         "Project Target One",
 					CallsCompleted: 5,
 					Status:         "In Progress",
@@ -121,7 +115,7 @@ func NewDB() mockdb.Database {
 				{
 					ID:             "project-id-2",
 					Name:           "Project Two",
-					StartDate:      time.Now().Add(-14 * 24 * time.Hour), // Example: two weeks ago
+					StartDate:      time.Now().Add(-14 * 24 * time.Hour),
 					Target:         "Project Target Two",
 					CallsCompleted: 3,
 					Status:         "Completed",
@@ -130,6 +124,6 @@ func NewDB() mockdb.Database {
 		},
 	}
 
-	// Correcting the call to mockdb.New with proper types and order
+	// Passing pointers to slices as per the expected types
 	return mockdb.New(&organizations, &users, &organizationIDToAvailableExpert, &organizationIDToCallTracker, &organizationIDToProject)
 }

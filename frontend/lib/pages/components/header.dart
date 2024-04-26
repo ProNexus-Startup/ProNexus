@@ -1,5 +1,5 @@
 import 'package:admin/responsive.dart';
-import 'package:admin/utils/cards/user_card.dart';
+import 'package:admin/utils/models/user.dart';
 import 'package:admin/utils/global_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';

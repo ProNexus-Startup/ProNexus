@@ -63,17 +63,39 @@ func (r *UserRepo) Insert(desiredUser models.User) error {
 }
 
 func (r *UserRepo) Update(userFields models.User) error {
-	if userFields.ID == "" {
-		return fmt.Errorf("error: missing ID field in argument")
-	}
+    if userFields.ID == "" {
+        return fmt.Errorf("error: missing ID field in argument")
+    }
 
-	for i, user := range *r.users {
-		if user.ID == userFields.ID {
-			// TODO: allow for the update of other fields
-			if !userFields.SignedAt.IsZero() {
-				(*r.users)[i].SignedAt = userFields.SignedAt
-			}
-		}
-	}
-	return nil
+    for i, user := range *r.users {
+        if user.ID == userFields.ID {
+            // Check and update each field if it has a non-zero value
+            if userFields.Email != "" {
+                (*r.users)[i].Email = userFields.Email
+            }
+            if userFields.FullName != "" {
+                (*r.users)[i].FullName = userFields.FullName
+            }
+            if userFields.Password != "" {
+                (*r.users)[i].Password = userFields.Password
+            }
+            if userFields.OrganizationID != "" {
+                (*r.users)[i].OrganizationID = userFields.OrganizationID
+            }
+            if userFields.ProjectID != "" {
+                (*r.users)[i].ProjectID = userFields.ProjectID
+            }
+            if len(userFields.PastProjectIDs) > 0 {
+                (*r.users)[i].PastProjectIDs = userFields.PastProjectIDs
+            }
+            if !userFields.SignedAt.IsZero() {
+                (*r.users)[i].SignedAt = userFields.SignedAt
+            }
+            if userFields.Token != "" {
+                (*r.users)[i].Token = userFields.Token
+            }
+            // Add more fields as necessary
+        }
+    }
+    return nil
 }

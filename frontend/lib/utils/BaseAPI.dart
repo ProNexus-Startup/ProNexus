@@ -1,8 +1,8 @@
 import 'dart:convert';
-import 'package:admin/utils/cards/available_expert_card.dart';
-import 'package:admin/utils/cards/call_tracker_card.dart';
-import 'package:admin/utils/cards/project_card.dart';
-import 'package:admin/utils/cards/user_card.dart';
+import 'package:admin/utils/models/available_expert.dart';
+import 'package:admin/utils/models/call_tracker.dart';
+import 'package:admin/utils/models/project.dart';
+import 'package:admin/utils/models/user.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:http/http.dart' as http;
 

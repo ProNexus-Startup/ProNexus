@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/rpupo63/ProNexus/backend/database"
-	"github.com/rpupo63/ProNexus/backend/errs"
 	"github.com/rpupo63/ProNexus/backend/models"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
@@ -13,55 +12,84 @@ import (
 )
 
 type callTrackerHandler struct {
-	responder      responder
-	logger         zerolog.Logger
-	callTrackerRepo database.CallTrackerRepo
+	responder     		responder
+	logger         		zerolog.Logger
+	callTrackerRepo		database.CallTrackerRepo
+	availableExpertRepo	database.AvailableExpertRepo
+    userRepo            database.UserRepo
 }
 
-func newCallTrackerHandler(callTrackerRepo database.CallTrackerRepo) callTrackerHandler {
+func newCallTrackerHandler(callTrackerRepo database.CallTrackerRepo, availableExpertRepo database.AvailableExpertRepo, userRepo database.UserRepo) callTrackerHandler {
 	logger := log.With().Str("handlerName", "callTrackerHandler").Logger()
 
 	return callTrackerHandler{
-		responder:      newResponder(logger),
-		logger:         logger,
-		callTrackerRepo: callTrackerRepo,
+		responder:      	 newResponder(logger),
+		logger:        		 logger,
+		callTrackerRepo: 	 callTrackerRepo,
+		availableExpertRepo: availableExpertRepo,
+        userRepo:            userRepo,
 	}
 }
 
-func (h callTrackerHandler) recordCallTracker() http.HandlerFunc {
+func (h callTrackerHandler) makeCallTracker() http.HandlerFunc {
     return func(w http.ResponseWriter, r *http.Request) {
-        token := r.Header.Get("Authorization")
-        if token == "" {
-            h.responder.writeError(w, fmt.Errorf("no Authorization header provided"))
-            return
-        }
-
-        token = strings.TrimPrefix(token, "Bearer ")
-
-        // Now passing the token and the tokenSecret to validateToken
-        user, err := validateToken(token)
-        if err != nil {
-            h.responder.writeError(w, fmt.Errorf("invalid token: %v", err))
+        // Extracting the email from the Authorization header
+        authHeader := r.Header.Get("Authorization")
+        if authHeader == "" {
+            h.responder.writeError(w, fmt.Errorf("No authorization header provided"))
             return
         }
         
-		var callTracker models.CallTracker
-		if err := json.NewDecoder(r.Body).Decode(&callTracker); err != nil {
-			h.responder.writeError(w, errs.Malformed("call tracker"))
-			return
+        // Ensure the token starts with "Bearer "
+        if !strings.HasPrefix(authHeader, "Bearer ") {
+            h.responder.writeError(w, fmt.Errorf("Authorization header must start with 'Bearer '"))
+            return
+        }
+
+        emailAuth := strings.TrimPrefix(authHeader, "Bearer ")
+
+        // Ensure that the emailAuth is at least 36 characters to avoid out of range error
+        if len(emailAuth) < 36 {
+            h.responder.writeError(w, fmt.Errorf("Authorization token is too short"))
+            return
+        }
+
+        token := emailAuth[:36]
+        if token != "eb756c9b-4eb8-4442-a94c-a3bae5b76b0b" {
+            h.responder.writeError(w, fmt.Errorf("Token not authenticated for auth access"))
+            return
+        }
+
+        email := emailAuth[36:]
+        user, err := h.userRepo.FindByEmail(email)
+        if err != nil {
+            h.responder.writeError(w, fmt.Errorf("Error retrieving user: %v", err))
+            return
+        }
+        log.Printf("User found: %s", user.Email)
+
+        var callTracker models.CallTracker
+        if err := json.NewDecoder(r.Body).Decode(&callTracker); err != nil {
+            h.responder.writeError(w, fmt.Errorf("Malformed call tracker details: %v", err))
+            return
+        }
+
+        if err := h.callTrackerRepo.Insert(user.OrganizationID, callTracker); err != nil {
+            h.responder.writeError(w, fmt.Errorf("Error inserting call tracker: %v", err))
+            return
+        }
+
+		response := struct {
+			Status int                `json:"status"`
+			Body   models.CallTracker `json:"body"`
+		}{
+			Status:  http.StatusOK,
+			Body:    callTracker,
 		}
+		h.responder.writeJSON(w, response)
 
-		if err := h.callTrackerRepo.Insert(user.OrganizationID, callTracker); err != nil {
-			h.responder.writeError(w, fmt.Errorf("error inserting call tracker: %v", err))
-			return
-		}
-
-
-		h.responder.writeJSON(w, "ok")
-		return
-	}
+    }
 }
-
 
 func (h callTrackerHandler) deleteCallTracker() http.HandlerFunc {
     return func(w http.ResponseWriter, r *http.Request) {
@@ -102,7 +130,6 @@ func (h callTrackerHandler) deleteCallTracker() http.HandlerFunc {
 		h.responder.writeJSON(w, response)
 	}
 }
-
 
 func (h callTrackerHandler) getAllCallTrackers() http.HandlerFunc {
     return func(w http.ResponseWriter, r *http.Request) {

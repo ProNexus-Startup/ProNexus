@@ -8,7 +8,7 @@ import 'splash_page.dart';
 
 ///import 'home_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../utils/models/app_text_form_field.dart';
+import '../utils/formatting/app_text_form_field.dart';
 //import 'resources/vectors.dart';
 //import '../utils/extensions.dart';
 //import '../../utils/formatting/app_constants.dart';

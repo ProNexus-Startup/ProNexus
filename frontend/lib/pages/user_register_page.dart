@@ -10,7 +10,7 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 //import '../utils/login_stuff/screen_arguments.dart';
 import '../utils/persistence/secure_storage.dart';
-import '../utils/models/app_text_form_field.dart';
+import '../utils/formatting/app_text_form_field.dart';
 import '../utils/extensions.dart';
 import '../utils/formatting/app_constants.dart';
 import '../utils/BaseAPI.dart';

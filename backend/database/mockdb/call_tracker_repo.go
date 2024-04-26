@@ -53,7 +53,6 @@ func (r *CallTrackerRepo) Insert(organizationID string, callTracker models.CallT
     return nil
 }
 
-
 func (r *CallTrackerRepo) Delete(organizationID string, callTrackerID string) error {
     for i, entry := range *r.organizationIDToCallTracker {
         if entry.OrganizationID == organizationID {
@@ -61,6 +60,49 @@ func (r *CallTrackerRepo) Delete(organizationID string, callTrackerID string) er
                 if tracker.ID == callTrackerID { // Correct reference to callTrackerID parameter
                     // Remove the call tracker by slicing it out
                     (*r.organizationIDToCallTracker)[i].CallTracker = append(entry.CallTracker[:j], entry.CallTracker[j+1:]...)
+                    return nil
+                }
+            }
+            return errors.New("call tracker not found")
+        }
+    }
+    return errors.New("organization not found")
+}
+
+func (r *CallTrackerRepo) Update(organizationID string, updatedTracker models.CallTracker) error {
+    for i, entry := range *r.organizationIDToCallTracker {
+        if entry.OrganizationID == organizationID {
+            for j, tracker := range entry.CallTracker {
+                if tracker.ID == updatedTracker.ID {
+                    // Update the call tracker fields with the fields from updatedTracker
+                    tracker.Name = updatedTracker.Name
+                    tracker.ProjectID = updatedTracker.ProjectID
+                    tracker.ProjectName = updatedTracker.ProjectName
+                    tracker.Favorite = updatedTracker.Favorite
+                    tracker.Title = updatedTracker.Title
+                    tracker.Company = updatedTracker.Company
+                    tracker.CompanyType = updatedTracker.CompanyType
+                    tracker.YearsAtCompany = updatedTracker.YearsAtCompany
+                    tracker.Description = updatedTracker.Description
+                    tracker.Geography = updatedTracker.Geography
+                    tracker.Angle = updatedTracker.Angle
+                    tracker.Status = updatedTracker.Status
+                    tracker.AIAssessment = updatedTracker.AIAssessment
+                    tracker.Comments = updatedTracker.Comments
+                    tracker.Availability = updatedTracker.Availability
+                    tracker.ExpertNetworkName = updatedTracker.ExpertNetworkName
+                    tracker.Cost = updatedTracker.Cost
+                    tracker.ScreeningQuestions = updatedTracker.ScreeningQuestions
+                    tracker.DateAddedExpert = updatedTracker.DateAddedExpert
+                    tracker.DateAddedCall = updatedTracker.DateAddedCall
+                    tracker.InviteSent = updatedTracker.InviteSent
+                    tracker.MeetingStartDate = updatedTracker.MeetingStartDate
+                    tracker.MeetingEndDate = updatedTracker.MeetingEndDate
+                    tracker.PaidStatus = updatedTracker.PaidStatus
+                    tracker.Rating = updatedTracker.Rating
+
+                    // Assign the updated tracker back to the slice
+                    (*r.organizationIDToCallTracker)[i].CallTracker[j] = tracker
                     return nil
                 }
             }

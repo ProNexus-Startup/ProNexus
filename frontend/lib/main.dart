@@ -7,7 +7,7 @@ import 'package:admin/utils/controllers/MenuAppController.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
-import 'utils/cards/user_card.dart';
+import 'utils/models/user.dart';
 import 'utils/global_bloc.dart';
 import 'utils/BaseAPI.dart';
 import 'utils/formatting/app_theme.dart';

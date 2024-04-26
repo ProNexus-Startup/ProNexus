@@ -63,12 +63,11 @@ func (h userHandler) getUsers() http.HandlerFunc {
 	}
 }
 
-// input to `recordSignature`
 type SignatureEvent struct {
 	Date time.Time `json:"date"`
 }
 
-func (h userHandler) recordSignature() http.HandlerFunc {
+func (h userHandler) makeSignature() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 		userID, err := ctxGetUserID(ctx)

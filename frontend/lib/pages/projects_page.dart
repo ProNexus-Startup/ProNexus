@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:admin/pages/components/page_wrapper.dart';
-import 'package:admin/utils/cards/project_card.dart';
+import 'package:admin/utils/models/project.dart';
 import 'package:admin/utils/BaseAPI.dart';
 import 'package:admin/utils/global_bloc.dart';
 import 'package:admin/utils/persistence/screen_arguments.dart';

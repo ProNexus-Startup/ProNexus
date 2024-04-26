@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:admin/pages/schedule_meeting_screen.dart';
 import 'package:admin/responsive.dart';
-import 'package:admin/utils/cards/available_expert_card.dart';
+import 'package:admin/utils/models/available_expert.dart';
 import 'package:admin/utils/global_bloc.dart';
 import 'package:admin/utils/BaseAPI.dart';
 import 'package:flutter/material.dart';

@@ -28,7 +28,7 @@ func newProjectHandler(projectRepo database.ProjectRepo) projectHandler {
 	}
 }
 
-func (h projectHandler) recordProject() http.HandlerFunc {
+func (h projectHandler) makeProject() http.HandlerFunc {
     return func(w http.ResponseWriter, r *http.Request) {
         token := r.Header.Get("Authorization")
         if token == "" {
@@ -56,6 +56,10 @@ func (h projectHandler) recordProject() http.HandlerFunc {
 			return
 		}
 
+		// add logic for this: User makes new project ==> 
+		// backend checks date added information for each expert
+		// any expert added after "dateonboarded" gets routed to newest project
+		//Add protection to make sure no experts/calls get routed to closed projects
 
 		h.responder.writeJSON(w, "ok")
 		return
