@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "18849604537",
+    "project_id": "pronexus-73107",
+    "storage_bucket": "pronexus-73107.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:18849604537:android:ccd5e3b391122d5712cc68",
+        "android_client_info": {
+          "package_name": "com.example.admin"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC2aqX7DP2VBOvtv-lJWTzhf9TfBVioOlE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

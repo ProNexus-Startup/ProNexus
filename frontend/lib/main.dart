@@ -19,14 +19,16 @@ import 'dart:async';
 import 'pages/components/page_wrapper.dart';
 import 'package:firebase_core/firebase_core.dart';
 //import 'package:firebase_analytics/firebase_analytics.dart';
+// Import the generated file
+import 'firebase_options.dart';
 
 int id = 0;
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
-      options: DefaultFirebaseOptions.currentPlatform
-  ));
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
   runApp(
     MultiProvider(
       providers: [
