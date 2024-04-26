@@ -26,6 +26,6 @@ type AvailableExpert struct {
 	ExpertNetworkName  string    `json:"expertNetworkName" db:"expert_network_name"`
 	Cost               float64   `json:"cost" db:"cost"`
 	ScreeningQuestions []string  `json:"screeningQuestions" db:"screening_questions"`
-	AddedExpertBy      string    `json:"addedExpertBy" db:"added_expert_by"`\
+	AddedExpertBy      string    `json:"addedExpertBy" db:"added_expert_by"`
 	DateAddedExpert	   time.Time `json:"dateAddedExpert" db:"date_added_expert"`
 }
