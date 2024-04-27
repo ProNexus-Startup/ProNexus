@@ -14,18 +14,22 @@ import (
 )
 
 type userHandler struct {
-	responder responder
-	logger    zerolog.Logger
-	userRepo  database.UserRepo
+	responder 			responder
+	logger    			zerolog.Logger
+	userRepo  			database.UserRepo
+	availableExpertRepo database.AvailableExpertRepo
+	callTrackerRepo 	database.CallTrackerRepo
 }
 
-func newUserHandler(userRepo database.UserRepo) userHandler {
+func newUserHandler(userRepo database.UserRepo, availableExpertRepo database.AvailableExpertRepo, callTrackerRepo database.CallTrackerRepo) userHandler {
     logger := log.With().Str("handlerName", "userHandler").Logger()
 
     return userHandler{
-        responder:   newResponder(logger),
-        logger:      logger,
-        userRepo:    userRepo,
+        responder:   		 newResponder(logger),
+        logger:      		 logger,
+        userRepo:    		 userRepo,
+		availableExpertRepo: availableExpertRepo,
+		callTrackerRepo:	 callTrackerRepo,
     }
 }
 
@@ -94,4 +98,71 @@ func (h userHandler) makeSignature() http.HandlerFunc {
 		h.responder.writeJSON(w, "ok")
 		return
 	}
+}
+
+type ProjectUpdateRequest struct {
+    NewProject     string    `json:"newProject"`
+    DateOnboarded  time.Time `json:"dateOnboarded"`
+}
+
+func (h userHandler) changeProjects() http.HandlerFunc {
+    return func(w http.ResponseWriter, r *http.Request) {
+        token := r.Header.Get("Authorization")
+        if token == "" {
+            h.responder.writeError(w, fmt.Errorf("no Authorization header provided"))
+            return
+        }
+
+        token = strings.TrimPrefix(token, "Bearer ")
+        user, err := validateToken(token)
+        if err != nil {
+            h.responder.writeError(w, fmt.Errorf("invalid token: %v", err))
+            return
+        }
+
+        var updateReq ProjectUpdateRequest
+        if err := json.NewDecoder(r.Body).Decode(&updateReq); err != nil {
+            h.responder.writeError(w, errs.Malformed("project update data"))
+            return
+        }
+
+        experts, err := h.availableExpertRepo.SelectByOrganizationID(user.OrganizationID)
+        if err != nil {
+            h.responder.writeError(w, fmt.Errorf("error fetching experts: %v", err))
+            return
+        }
+
+        for _, expert := range experts {
+            if expert.AddedExpertBy == user.ID && expert.DateAddedExpert.After(updateReq.DateOnboarded) {
+                err := h.availableExpertRepo.Update(user.OrganizationID, models.AvailableExpert{ID: expert.ID, ProjectID: updateReq.NewProject})
+                if err != nil {
+                    h.responder.writeError(w, fmt.Errorf("error updating expert: %v", err))
+                    return
+                }
+            }
+        }
+
+        calls, err := h.callTrackerRepo.SelectByOrganizationID(user.OrganizationID)
+        if err != nil {
+            h.responder.writeError(w, fmt.Errorf("error fetching calls: %v", err))
+            return
+        }
+
+        for _, call := range calls {
+            if call.AddedExpertBy == user.ID && call.DateAddedExpert.After(updateReq.DateOnboarded) {
+                err := h.callTrackerRepo.Update(user.OrganizationID, models.CallTracker{ID: call.ID, ProjectID: updateReq.NewProject})
+                if err != nil {
+                    h.responder.writeError(w, fmt.Errorf("error updating call: %v", err))
+                    return
+                }
+            }
+        }
+
+        if err := h.userRepo.Update(models.User{ID: user.ID, ProjectID: updateReq.NewProject, DateOnboarded: updateReq.DateOnboarded}); err != nil {
+            h.responder.writeError(w, fmt.Errorf("error updating user information: %v", err))
+            return
+        }
+
+        h.responder.writeJSON(w, map[string]string{"message": "Successfully changed projects"})
+    }
 }

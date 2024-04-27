@@ -8,7 +8,7 @@ import 'package:http/http.dart' as http;
 
 class BaseAPI {
   static String api =
-      "http://localhost:8080"; //"https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"
+      "happy-reprieve-production.up.railway.app"; //"https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"
   Uri userPath = Uri.parse('$api/me');
   Uri loginPath = Uri.parse('$api/login');
   Uri logoutPath = Uri.parse("$api/logout");

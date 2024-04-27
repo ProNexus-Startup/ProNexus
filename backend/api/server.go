@@ -50,9 +50,10 @@ func newRouter(database database.Database, opts ...func(*router)) *chi.Mux {
 
 	chiRouter := chi.NewRouter()
 	// middlewares
-	corsAllowedOrigin := config.GetString(router.config, "CORSALLOWEDORIGIN", "http://*")
+	//corsAllowedOrigin := config.GetString(router.config, "CORSALLOWEDORIGIN", "http://*")
+	//frontendURL := "https://pronexus-73107.firebaseapp.com"
 	chiRouter.Use(cors.Handler(cors.Options{
-		AllowedOrigins:   []string{corsAllowedOrigin},
+		AllowedOrigins:   []string{"*"}, //AllowedOrigins:   []string{frontendURL, "http://localhost:8080"}, //[]string{corsAllowedOrigin},
 		AllowedMethods:   []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
 		AllowCredentials: true,
 		AllowedHeaders:   []string{"Content-Type", "Authorization", "userID"},
@@ -62,10 +63,10 @@ func newRouter(database database.Database, opts ...func(*router)) *chi.Mux {
 	// define handlers
 	authMiddleware := newAuthMiddleware()
 	organizationHandler := newOrganizationHandler(database.OrganizationRepo(), database.UserRepo(), database.CallTrackerRepo(), database.AvailableExpertRepo(), database.ProjectRepo())
-	userHandler := newUserHandler(database.UserRepo())
+	userHandler := newUserHandler(database.UserRepo(), database.AvailableExpertRepo(), database.CallTrackerRepo())
 	authHandler := newAuthHandler(database.UserRepo(), database.OrganizationRepo())//, config.GetString(router.config, "TOKENSECRET", "tokenSecret"))
 	AvailableExpertHandler := newAvailableExpertHandler(database.AvailableExpertRepo(), database.UserRepo())
-    CallTrackerHandler := newCallTrackerHandler(database.CallTrackerRepo(), database.AvailableExpertRepo(), database.UserRepo())
+    CallTrackerHandler := newCallTrackerHandler(database.CallTrackerRepo(), database.UserRepo())
 	ProjectHandler := newProjectHandler(database.ProjectRepo())
 
 	// index

@@ -56,11 +56,6 @@ func (h projectHandler) makeProject() http.HandlerFunc {
 			return
 		}
 
-		// add logic for this: User makes new project ==> 
-		// backend checks date added information for each expert
-		// any expert added after "dateonboarded" gets routed to newest project
-		//Add protection to make sure no experts/calls get routed to closed projects
-
 		h.responder.writeJSON(w, "ok")
 		return
 	}
@@ -95,15 +90,7 @@ func (h projectHandler) deleteProject() http.HandlerFunc {
 			return
 		}
 
-		// Adjusted to match expected signature of writeJSON
-		response := struct {
-			Status  int    `json:"status"`
-			Message string `json:"message"`
-		}{
-			Status:  http.StatusOK,
-			Message: "Project deleted successfully",
-		}
-		h.responder.writeJSON(w, response)
+		h.responder.writeJSON(w, "Project deleted successfully")
 	}
 }
 

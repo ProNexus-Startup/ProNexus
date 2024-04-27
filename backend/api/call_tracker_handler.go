@@ -15,18 +15,16 @@ type callTrackerHandler struct {
 	responder     		responder
 	logger         		zerolog.Logger
 	callTrackerRepo		database.CallTrackerRepo
-	availableExpertRepo	database.AvailableExpertRepo
     userRepo            database.UserRepo
 }
 
-func newCallTrackerHandler(callTrackerRepo database.CallTrackerRepo, availableExpertRepo database.AvailableExpertRepo, userRepo database.UserRepo) callTrackerHandler {
+func newCallTrackerHandler(callTrackerRepo database.CallTrackerRepo, userRepo database.UserRepo) callTrackerHandler {
 	logger := log.With().Str("handlerName", "callTrackerHandler").Logger()
 
 	return callTrackerHandler{
 		responder:      	 newResponder(logger),
 		logger:        		 logger,
 		callTrackerRepo: 	 callTrackerRepo,
-		availableExpertRepo: availableExpertRepo,
         userRepo:            userRepo,
 	}
 }
@@ -79,14 +77,7 @@ func (h callTrackerHandler) makeCallTracker() http.HandlerFunc {
             return
         }
 
-		response := struct {
-			Status int                `json:"status"`
-			Body   models.CallTracker `json:"body"`
-		}{
-			Status:  http.StatusOK,
-			Body:    callTracker,
-		}
-		h.responder.writeJSON(w, response)
+		h.responder.writeJSON(w, "call tracker made successfully")
 
     }
 }
@@ -119,15 +110,7 @@ func (h callTrackerHandler) deleteCallTracker() http.HandlerFunc {
 			return
 		}
 
-		// Adjusted to match expected signature of writeJSON
-		response := struct {
-			Status  int    `json:"status"`
-			Message string `json:"message"`
-		}{
-			Status:  http.StatusOK,
-			Message: "Tracked call deleted successfully",
-		}
-		h.responder.writeJSON(w, response)
+		h.responder.writeJSON(w, "Tracked call deleted successfully")
 	}
 }
 

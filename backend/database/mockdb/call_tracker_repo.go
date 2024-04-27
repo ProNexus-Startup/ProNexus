@@ -77,7 +77,6 @@ func (r *CallTrackerRepo) Update(organizationID string, updatedTracker models.Ca
                     // Update the call tracker fields with the fields from updatedTracker
                     tracker.Name = updatedTracker.Name
                     tracker.ProjectID = updatedTracker.ProjectID
-                    tracker.ProjectName = updatedTracker.ProjectName
                     tracker.Favorite = updatedTracker.Favorite
                     tracker.Title = updatedTracker.Title
                     tracker.Company = updatedTracker.Company

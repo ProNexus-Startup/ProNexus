@@ -1,47 +1,7 @@
-import requests
-from email import message_from_string
-from typing import List
+from bs4 import BeautifulSoup
+data = '''<html><head>\r\n<meta http-equiv="Content-Type" content="text/html; charset=utf-8"><style type="text/css" style="display:none">\r\n<!--\r\np\r\n\t{margin-top:0;\r\n\tmargin-bottom:0}\r\n-->\r\n</style></head><body dir="ltr"><p class="elementToProof" style="text-align:left; text-indent:0px; margin:0in 0in 0.0001pt"><span style="font-family:Calibri,&quot;sans-serif&quot;; font-size:11pt; color:rgb(0,0,0)">Hello,&nbsp;&nbsp;&nbsp;</span></p><p style="text-align:left; text-indent:0px; margin:0in 0in 0.0001pt"><span style="font-family:Calibri,&quot;sans-serif&quot;; font-size:11pt; color:rgb(0,0,0)">&nbsp;&nbsp;</span></p><p style="text-align:left; text-indent:0px; margin:0in 0in 0.0001pt"><span style="font-family:Calibri,&quot;sans-serif&quot;; font-size:11pt; color:rgb(0,0,0)">I am wondering if you got a chance to review my previous email regarding </span><span style="font-family:Calibri,&quot;sans-serif&quot;; font-size:11pt; color:black; background-color:white"><b>WEB </b></span><span style="font-family:Calibri,&quot;sans-serif&quot;; font-size:11pt; color:rgb(0,0,0); background-color:white"><b>Services</b></span></p><p style="text-align:left; text-indent:0px; margin:0in 0in 0.0001pt"><span style="font-family:Calibri,&quot;sans-serif&quot;; font-size:11pt; color:rgb(0,0,0)">&nbsp;</span></p><p style="text-align:left; text-indent:0px; margin:0in 0in 0.0001pt"><span style="font-family:Calibri,&quot;sans-serif&quot;; font-size:11pt; color:rgb(0,0,0)">Regards,</span></p><p style="text-align:left; text-indent:0px; margin:0in 0in 0.0001pt"><span style="font-family:Calibri,&quot;sans-serif&quot;; font-size:11pt; color:rgb(0,0,0)">Marry</span></p><p class="elementToProof" style="text-align:left; text-indent:0px; margin:0in 0in 0.0001pt"><span style="font-family:Calibri,&quot;sans-serif&quot;; font-size:11pt; color:rgb(0,0,0)">NOTE: </span><span style="font-family:Calibri,&quot;sans-serif&quot;; font-size:11pt; color:rgb(0,0,0); background-color:yellow">Please share your Skype or Contact number forg Real-time Communication.</span></p><div id="appendonsend"></div><hr tabindex="-1" style="display:inline-block; width:98%"><div id="divRplyFwdMsg" dir="ltr"><font face="Calibri, sans-serif" color="#000000" style="font-size:11pt"><b>From:</b> Marry Hatton &lt;marry.hatton@hotmail.com&gt;<br><b>Sent:</b> Saturday, April 20, 2024 8:37 PM<br><b>To:</b> Marry &lt;marry.hatton@hotmail.com&gt;<br><b>Subject:</b> Development</font> <div>&nbsp;</div></div><div><p dir="LTR"><span lang="en-us"><font face="Calibri">Hello, </font></span></p><p dir="LTR"><span lang="en-us"><font face="Calibri">We have developed 100s of Websites&nbsp; such as -)</font></span></p><p dir="LTR"><span lang="en-us"><font face="Calibri">&nbsp;</font></span></p><p dir="LTR"><span lang="en-us"><font face="Calibri">A.</font></span><span lang="en-us"></span><span lang="en-us"><font size="1" face="Calibri">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</font></span><span lang="en-us"> <font face="Calibri">Taxi Booking web</font></span></p><p dir="LTR"><span lang="en-us"><font face="Calibri">B.</font></span><span lang="en-us"></span><span lang="en-us"><font size="1" face="Calibri">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</font></span><span lang="en-us"> <font face="Calibri">Tours &amp; Travel web</font></span></p><p dir="LTR"><span lang="en-us"><font face="Calibri">C.</font></span><span lang="en-us"></span><span lang="en-us"><font size="1" face="Calibri">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</font></span><span lang="en-us"> <font face="Calibri">Dating web</font></span></p><p dir="LTR"><span lang="en-us"><font face="Calibri">D.</font></span><span lang="en-us"></span><span lang="en-us"><font size="1" face="Calibri">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</font></span><span lang="en-us"> <font face="Calibri">Shopping web</font></span></p><p dir="LTR"><span lang="en-us"><font face="Calibri">E.</font></span><span lang="en-us"></span><span lang="en-us"><font size="1" face="Calibri">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</font></span><span lang="en-us"> <font face="Calibri">Audio / Video web</font></span></p><p dir="LTR"><span lang="en-us"><font face="Calibri">F.</font></span><span lang="en-us"></span><span lang="en-us"><font size="1" face="Calibri">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</font></span><span lang="en-us"> <font face="Calibri">Online Store &amp; Shopping web</font></span></p><p dir="LTR"><span lang="en-us"><font face="Calibri">G.</font></span><span lang="en-us"></span><span lang="en-us"><font size="1" face="Calibri">&nbsp;&nbsp;&nbsp;&nbsp;</font></span><span lang="en-us"> <font face="Calibri">Social Network web</font></span></p><p dir="LTR"><span lang="en-us"><font face="Calibri">H.</font></span><span lang="en-us"></span><span lang="en-us"><font size="1" face="Calibri">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</font></span><span lang="en-us"> <font face="Calibri">UI Based web</font></span></p><p dir="LTR"><span lang="en-us"><font face="Calibri">I.</font></span><span lang="en-us"></span><span lang="en-us"><font size="1" face="Calibri">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</font></span><span lang="en-us"> <font face="Calibri">Food Delivery web</font></span></p><p dir="LTR"><span lang="en-us"><font face="Calibri">J.</font></span><span lang="en-us"></span><span lang="en-us"><font size="1" face="Calibri">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</font></span><span lang="en-us"> <font face="Calibri">Finance web</font></span></p><p dir="LTR"><span lang="en-us"><font face="Calibri">K.</font></span><span lang="en-us"></span><span lang="en-us"><font size="1" face="Calibri">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</font></span><span lang="en-us"> <font face="Calibri">Media web</font></span></p><p dir="LTR"><span lang="en-us"><font face="Calibri">L.</font></span><span lang="en-us"></span><span lang="en-us"><font size="1" face="Calibri">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</font></span><span lang="en-us"> <font face="Calibri">Education web</font></span></p><p dir="LTR"><span lang="en-us"><font face="Calibri">M.</font></span><span lang="en-us"></span><span lang="en-us"><font size="1" face="Calibri">&nbsp;&nbsp;&nbsp;</font></span><span lang="en-us"> <font face="Calibri">E-Commerce web etc</font></span></p><p dir="LTR"><span lang="en-us"><font face="Calibri">&nbsp;</font></span></p><p dir="LTR"><span lang="en-us"><b><font face="Calibri">With your permission I would like to send you our portfolio /package/proposal.?</font></b></span></p><p dir="LTR"><span lang="en-us"></span></p><p dir="LTR"><span lang="en-us"><font face="Calibri">Regards</font></span><span lang="en-us"><br><font face="Calibri">Marry</font></span><span lang="en-us"></span></p></div></body></html>'}, 'from': {'emailAddress': {'name': 'Marry Hatton', 'address': 'marry.hatton@hotmail.com'}'''
 
-# Function to get email content using Microsoft Graph API
-def get_email_content(email_id: str, access_token: str) -> str:
-    headers = {
-        'Authorization': 'Bearer ' + access_token
-    }
-    response = requests.get(f'https://graph.microsoft.com/v1.0/me/messages/{email_id}', headers=headers)
-    response.raise_for_status()
-    return response.json().get('body', {}).get('content', '')
 
-# Function to parse the email content using Python's email package
-def parse_email_thread(raw_email_content: str) -> List[message_from_string]:
-    # Parse the raw email content into an email message object
-    message = message_from_string(raw_email_content)
+soup = BeautifulSoup(data, 'html.parser')
 
-    # List to store parsed emails
-    emails = []
-
-    # Check if the message is multipart (contains multiple emails)
-    if message.is_multipart():
-        for part in message.walk():
-            # Ensure the part is a message/rfc822 content type (an embedded email)
-            if part.get_content_type() == 'message/rfc822':
-                emails.append(part.get_payload(0))
-    else:
-        emails.append(message)
-
-    return emails
-
-# Example usage
-if __name__ == "__main__":
-    email_id = 'your-email-id'
-    access_token = 'your-access-token'
-    
-    # Get email content using Graph API
-    email_content = get_email_content(email_id, access_token)
-    
-    # Parse the email thread into separate emails
-    emails = parse_email_thread(email_content)
-    
-    # Print each email's sender and body
-    for email in emails:
-        print(f"Sender: {email['from']}")
-        print(f"Body: {email.get_payload(decode=True)}\n")
+print(soup.prettify())

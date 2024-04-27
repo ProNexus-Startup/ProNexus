@@ -102,15 +102,8 @@ func (h authHandler) login() http.HandlerFunc {
             return
         }
 
-        // Prepare the response
-        response := struct {
-            Token string `json:"token"`
-        }{
-            Token: accessToken,
-        }
-
         // Send the response back to the client
-        h.responder.writeJSON(w, response)
+        h.responder.writeJSON(w, accessToken)
     }
 }
 

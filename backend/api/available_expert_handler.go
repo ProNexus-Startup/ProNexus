@@ -84,16 +84,7 @@ func (h availableExpertHandler) makeAvailableExpert() http.HandlerFunc {
             return
         }
 
-        response := struct {
-			Status  int    `json:"status"`
-			Message string `json:"message"`
-		}{
-			Status:  http.StatusOK,
-			Message: "Available expert deleted successfully",
-		}
-
-        // Optionally return the new expert's details including the UUID
-        h.responder.writeJSON(w, response)
+        h.responder.writeJSON(w, "Available expert added successfully")
     }
 }
 
@@ -125,15 +116,7 @@ func (h availableExpertHandler) deleteAvailableExpert() http.HandlerFunc {
 			return
 		}
 
-		// Adjusted to match expected signature of writeJSON
-		response := struct {
-			Status  int    `json:"status"`
-			Message string `json:"message"`
-		}{
-			Status:  http.StatusOK,
-			Message: "Available expert deleted successfully",
-		}
-		h.responder.writeJSON(w, response)
+		h.responder.writeJSON(w, "Available expert deleted successfully")
 	}
 }
 

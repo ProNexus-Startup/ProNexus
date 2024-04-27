@@ -92,7 +92,6 @@ func (r *AvailableExpertRepo) Update(organizationID string, updatedTracker model
                 if tracker.ID == updatedTracker.ID {
                     tracker.Name = updatedTracker.Name
                     tracker.ProjectID = updatedTracker.ProjectID
-                    tracker.ProjectName = updatedTracker.ProjectName
                     tracker.Favorite = updatedTracker.Favorite
                     tracker.Title = updatedTracker.Title
                     tracker.Company = updatedTracker.Company

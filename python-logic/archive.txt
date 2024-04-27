@@ -1,0 +1,59 @@
+def parse_email_thread(raw_email_content: str):
+    message = message_from_string(raw_email_content)
+    emails = []
+    if message.is_multipart():
+        # Walk through all parts of the email to find embedded email objects
+        for part in message.walk():
+            # Check if the part is another email message as per MIME type
+            if part.get_content_type() == 'message/rfc822':
+                # message/rfc822 indicates the part is a full email message itself
+                nested_message = part.get_payload(0)  # Assuming there is only one payload in this part
+                if nested_message.is_multipart():
+                    emails.extend(parse_email_thread(nested_message.as_string()))
+                else:
+                    email_dict = extract_email_data(nested_message)
+                    emails.append(email_dict)
+    else:
+        email_dict = extract_email_data(message)
+        emails.append(email_dict)
+    return emails
+
+def extract_email_data(email_message):
+    """Extracts email data into a dictionary containing all necessary fields."""
+    print("Headers Available:", email_message.keys())  # Debug: print all available headers
+
+    # Check if each header is available and print its value
+    for header in ['From', 'To', 'Subject', 'X-IsMeeting', 'X-MeetingMessageType']:
+        print(f"{header}: {email_message.get(header, 'Not Available')}")
+
+    # Handle multipart content
+    content = ''
+    if email_message.is_multipart():
+        for part in email_message.walk():
+            if part.get_content_type() == 'text/plain':
+                content += part.get_payload(decode=True).decode('utf-8')
+    else:
+        content = email_message.get_payload(decode=True).decode('utf-8')
+
+    return {
+        'from': email_message.get('From'),
+        'to': email_message.get('To'),
+        'subject': email_message.get('Subject'),
+        'body': content,
+        'isMeeting': email_message.get('X-IsMeeting', False),
+        'meetingMessageType': email_message.get('X-MeetingMessageType', '')
+    }
+
+# Separate email threads
+def separate_emails(thread):
+    print(thread)
+    print("Headers Available:", thread.keys())  # Debug: print all available headers
+    print(thread['id'])
+    print('hereherehere')
+    separated_emails = {}
+    for email in thread:
+        thread_id = email.get('conversationId')
+        if thread_id not in separated_emails:
+            separated_emails[thread_id] = []
+        separated_emails[thread_id].append(email)
+    return separated_emails
