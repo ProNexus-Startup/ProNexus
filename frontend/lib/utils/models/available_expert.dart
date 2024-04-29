@@ -1,61 +1,66 @@
 class AvailableExpert {
-  bool isSelected = false; // Add this line
+  bool isSelected = false; // Default to false instead of being nullable
   final String expertId;
-  final String name;
-  final String projectId;
-  bool favorite;
-  final String title;
-  final String company;
-  final String yearsAtCompany; //Potentially save as date. Wait for feedback
-  final String description;
-  final String geography; //Save as string for now, but this is case-by-case
-  final String angle;
+  String name;
+  String projectId;
+  bool favorite = false; // Default to false
+  String title;
+  String company;
+  String companyType;
+  String yearsAtCompany;
+  String description;
+  String geography;
+  String angle;
   String status;
-  final int AIAssessment;
-  String comments;
+  int? AIAssessment; // Keep nullable if assessment may not exist
+  String? comments;
   final String availability;
   final String expertNetworkName;
-  final double cost;
-  final List<String> screeningQuestions;
+  double cost;
+  List<String> screeningQuestions;
+  String addedExpertBy;
+  DateTime dateAddedExpert;
 
   AvailableExpert({
-    required this.isSelected,
+    this.isSelected = false, // Provide a default value directly
     required this.expertId,
     required this.name,
     required this.projectId,
-    required this.favorite,
+    this.favorite = false, // Provide a default value directly
     required this.title,
     required this.company,
+    required this.companyType,
     required this.yearsAtCompany,
     required this.description,
     required this.geography,
     required this.angle,
     required this.status,
-    required this.AIAssessment,
-    required this.comments,
+    this.AIAssessment,
+    this.comments,
     required this.availability,
     required this.expertNetworkName,
     required this.cost,
     required this.screeningQuestions,
+    required this.addedExpertBy,
+    required this.dateAddedExpert,
   });
 
   factory AvailableExpert.fromJson(Map<String, dynamic> json) {
-    // Ensure screeningQuestions is cast to List<String>
     var screeningQuestionsFromJson = json['screeningQuestions'];
-    List<String> screeningQuestionsList = [];
-    if (screeningQuestionsFromJson != null) {
-      screeningQuestionsList = List<String>.from(
-          screeningQuestionsFromJson.map((question) => question.toString()));
-    }
+    List<String> screeningQuestionsList = screeningQuestionsFromJson != null
+        ? List<String>.from(
+            screeningQuestionsFromJson.map((question) => question.toString()))
+        : [];
 
     return AvailableExpert(
-      isSelected: false,
+      isSelected: json['isSelected'] ?? false,
       expertId: json['expertId'],
       name: json['name'],
       projectId: json['projectId'],
-      favorite: json['favorite'],
+      favorite: json['favorite'] ?? false,
       title: json['title'],
       company: json['company'],
+      companyType: json['companyType'],
       yearsAtCompany: json['yearsAtCompany'],
       description: json['description'],
       geography: json['geography'],
@@ -65,8 +70,10 @@ class AvailableExpert {
       comments: json['comments'],
       availability: json['availability'],
       expertNetworkName: json['expertNetworkName'],
-      cost: json['cost'].toDouble(), // Ensure it's a double, might need parsing
+      cost: json['cost'].toDouble(),
       screeningQuestions: screeningQuestionsList,
+      addedExpertBy: json['addedExpertBy'],
+      dateAddedExpert: DateTime.parse(json['dateAddedExpert']),
     );
   }
 }

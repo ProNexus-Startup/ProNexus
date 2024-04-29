@@ -108,7 +108,7 @@ if "access_token" in token_response:
 #endregion
 
 # Get information for backend
-def extract_expert_data(email):
+def get_expert_info(email):
     email_body = email.get_payload(decode=True)
     subject = email['subject']
     edited_subject = f'Subject: {subject}\n'
@@ -292,7 +292,7 @@ def read_email(url: str, headers: dict, backend_password: str):
             elif route == "none":
                 continue
             else:
-                expert_data = extract_expert_data(email=parsed_email)
+                expert_data = get_expert_info(email=parsed_email)
                 if expert_data != "No Expert Found":
                     for expert in expert_data:
                         send_to_backend(
@@ -312,7 +312,7 @@ def main():
     try:
         while True:
             read_email(url=url, headers=headers, backend_password=BACKEND_PASSWORD)
-            time.sleep(60)
+            #time.sleep(60)
     except KeyboardInterrupt:
         print("Program stopped manually.")
 

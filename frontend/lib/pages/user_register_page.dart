@@ -71,8 +71,7 @@ class _UserRegisterPageState extends State<UserRegisterPage> {
               emailController.text, passwordController.text);
           print(req.statusCode);
           if (req.statusCode == 201 || req.statusCode == 200) {
-            var data = jsonDecode(req.body);
-            String token = data['token'];
+            var token = jsonDecode(req.body);
             await SecureStorage().write('token', token);
             if (!context.mounted) {
               return;

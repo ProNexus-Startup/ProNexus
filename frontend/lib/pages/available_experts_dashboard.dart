@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'package:admin/pages/schedule_meeting_screen.dart';
 import 'package:admin/responsive.dart';
 import 'package:admin/utils/models/available_expert.dart';
@@ -8,7 +7,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../utils/constants.dart';
 import 'components/header.dart';
-import 'package:http/http.dart' as http;
 
 class AvailableExpertsDashboard extends StatefulWidget {
   final String token; // Username variable
@@ -23,7 +21,8 @@ class AvailableExpertsDashboard extends StatefulWidget {
 }
 
 class _AvailableExpertsDashboardState extends State<AvailableExpertsDashboard> {
-  // Track if any items are selected
+  final AuthAPI _authAPI = AuthAPI();
+
   bool isAnySelected = false;
 
   // Update this based on checkbox changes
@@ -31,49 +30,6 @@ class _AvailableExpertsDashboardState extends State<AvailableExpertsDashboard> {
     setState(() {
       isAnySelected = isSelected;
     });
-  }
-
-  Future<void> postExpert(globalBloc) async {
-    AuthAPI _authAPI = AuthAPI();
-    final response = await http.post(
-      _authAPI.makeExpertsPath,
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ${widget.token}',
-      },
-      body: jsonEncode({
-        "expertId": "123",
-        "name": "John Doe",
-        "project": "Project 1",
-        "favorite": false,
-        "title": "Senior Engineer",
-        "company": "Tech Solutions",
-        "yearsAtCompany": "5",
-        "description": "Expert in renewable energy systems",
-        "geography": "USA",
-        "angle": "Technical",
-        "status": "Active",
-        "AIAssessment": 85,
-        "comments": "Highly recommended for technical insights",
-        "availability": "Monday to Friday",
-        "expertNetworkName": "Global Tech Leaders",
-        "cost": 200.0,
-        "screeningQuestions": [
-          "What is your experience with renewable energy?",
-          "Can you provide examples of projects you've led?"
-        ],
-      }),
-    );
-
-    if (response.statusCode == 200) {
-      // Handle the response body if the call was successful
-      print('Success: ${response.body}');
-      globalBloc.onUserLogin(widget.token);
-    } else {
-      // Handle the error
-      print(
-          'Failed to post available expert. StatusCode: ${response.statusCode}');
-    }
   }
 
   @override
@@ -103,8 +59,7 @@ class _AvailableExpertsDashboardState extends State<AvailableExpertsDashboard> {
                     // Adding the new ElevatedButton here
                     ElevatedButton(
                       onPressed: () {
-                        postExpert(
-                            globalBloc); // Triggering the postExpert method
+                        _authAPI.postExpert(globalBloc, widget.token);
                       },
                       child: Text('Add Expert'), // Button text
                     ),
@@ -292,7 +247,7 @@ class _ExpertTableState extends State<ExpertTable> {
         DataCell(Text(expert.angle)),
         DataCell(Text(expert.status)),
         DataCell(Text('${expert.AIAssessment}')),
-        DataCell(Text(expert.comments)),
+        DataCell(Text(expert.comments ?? '')),
         DataCell(Text(expert.availability)),
       ],
     );

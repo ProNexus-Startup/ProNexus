@@ -48,8 +48,8 @@ class _LoginPageState extends State<LoginPage> {
       var req = await _authAPI.login(email, password);
       print(req.statusCode);
       if (req.statusCode == 200) {
-        var data = jsonDecode(req.body);
-        String token = data['token'];
+        var token = jsonDecode(req.body);
+        print(token);
         await SecureStorage().write('token', token);
         if (!context.mounted) {
           return;

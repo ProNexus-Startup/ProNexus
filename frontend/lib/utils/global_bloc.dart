@@ -69,8 +69,7 @@ class GlobalBloc with ChangeNotifier {
     expertList = [];
     callList = [];
     projectList = [];
-    currentUser =
-        User(id: "", fullName: "", email: "", password: "", organizationID: "");
+    currentUser = User.defaultUser();
   }
 
   late List<Project> projectList;
@@ -115,8 +114,7 @@ class GlobalBloc with ChangeNotifier {
     expertList = [];
     callList = [];
     projectList = [];
-    currentUser =
-        User(id: "", fullName: "", email: "", password: "", organizationID: "");
+    currentUser = User.defaultUser();
     notifyListeners();
   }
 
@@ -157,8 +155,8 @@ class GlobalBloc with ChangeNotifier {
   void toggleFavorite(AvailableExpert expert) {
     int index = expertList.indexOf(expert);
     if (index != -1) {
-      expertList[index].favorite = !expertList[index].favorite;
-      notifyListeners(); // Notify all listening widgets to rebuild
+      expertList[index].favorite = !(expertList[index].favorite);
+      notifyListeners();
     }
   }
 }

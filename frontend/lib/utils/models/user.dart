@@ -5,14 +5,21 @@ class User {
   String email;
   String fullName;
   String password;
-  String organizationID;
+  String organizationId;
+  String? projectId;
+  DateTime? dateOnboarded;
+  List<String>? pastProjectIDs;
 
-  User(
-      {required this.id,
-      required this.email,
-      required this.fullName,
-      required this.password,
-      required this.organizationID});
+  User({
+    required this.id,
+    required this.email,
+    required this.fullName,
+    required this.password,
+    required this.organizationId,
+    this.projectId,
+    this.dateOnboarded,
+    this.pastProjectIDs,
+  });
 
   // Default constructor
   User.defaultUser()
@@ -20,7 +27,7 @@ class User {
         email = 'default@example.com',
         fullName = 'Default',
         password = 'Password1234!',
-        organizationID = "Org 1";
+        organizationId = "Org 1";
 
   factory User.fromJson(String body) {
     Map<String, dynamic> json = jsonDecode(body);
@@ -29,6 +36,6 @@ class User {
         email: json['email'],
         fullName: json['fullName'],
         password: json['password'],
-        organizationID: json['organizationID']);
+        organizationId: json['organizationID']);
   }
 }

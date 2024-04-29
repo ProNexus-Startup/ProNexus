@@ -8,7 +8,7 @@ import 'package:http/http.dart' as http;
 
 class BaseAPI {
   static String api =
-      "happy-reprieve-production.up.railway.app"; //"https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"
+      "https://happy-reprieve-production.up.railway.app"; //"https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"
   Uri userPath = Uri.parse('$api/me');
   Uri loginPath = Uri.parse('$api/login');
   Uri logoutPath = Uri.parse("$api/logout");
@@ -42,6 +42,7 @@ class AuthAPI extends BaseAPI {
   }
 
   Future<http.Response> makeOrg(String orgName) async {
+    print(orgName);
     var body = jsonEncode({'name': orgName});
     var headers = {
       'Content-Type': 'application/json',
@@ -185,6 +186,80 @@ class AuthAPI extends BaseAPI {
       // Log the exception
       print("Error occurred while fetching projects: $e");
       return []; // Return an empty list as a fallback in case of exceptions
+    }
+  }
+
+  Future<void> postExpert(globalBloc, token) async {
+    AuthAPI _authAPI = AuthAPI();
+    final response = await http.post(
+      _authAPI.makeExpertsPath,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ${token}',
+      },
+      body: jsonEncode({
+        "expertId": "123",
+        "name": "John Doe",
+        "project": "Project 1",
+        "favorite": false,
+        "title": "Senior Engineer",
+        "company": "Tech Solutions",
+        "yearsAtCompany": "5",
+        "description": "Expert in renewable energy systems",
+        "geography": "USA",
+        "angle": "Technical",
+        "status": "Active",
+        "AIAssessment": 85,
+        "comments": "Highly recommended for technical insights",
+        "availability": "Monday to Friday",
+        "expertNetworkName": "Global Tech Leaders",
+        "cost": 200.0,
+        "screeningQuestions": [
+          "What is your experience with renewable energy?",
+          "Can you provide examples of projects you've led?"
+        ],
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      // Handle the response body if the call was successful
+      print('Success: ${response.body}');
+      globalBloc.onUserLogin(token);
+    } else {
+      // Handle the error
+      print(
+          'Failed to post available expert. StatusCode: ${response.statusCode}');
+    }
+  }
+
+  Future<void> postProject(String token, String name, DateTime startDate,
+      String target, String status) async {
+    AuthAPI _authAPI = AuthAPI();
+    final response = await http.post(
+      _authAPI.makeProjectPath,
+      headers: {
+        'Content-Type': 'application/json; charset=UTF-8',
+        'Authorization': 'Bearer ${token}',
+      },
+      body: jsonEncode({
+        'projectId': '', // This is a unique identifier for the project
+        'name': name, // Name of the project
+        'startDate': startDate
+            .toUtc()
+            .toIso8601String(), //startDate, // Start date in ISO 8601 format
+        'target': target, // The target goal of the project
+        'callsCompleted':
+            0, // Number of calls or actions completed towards the project
+        'status': status, // The current status of the project
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      // Handle the response body if the call was successful
+      print('Success: ${response.body}');
+    } else {
+      // Handle the error
+      print('Failed to post project. StatusCode: ${response.statusCode}');
     }
   }
 

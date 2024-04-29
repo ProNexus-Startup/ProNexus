@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'package:admin/pages/components/page_wrapper.dart';
 import 'package:admin/utils/models/project.dart';
 import 'package:admin/utils/BaseAPI.dart';
@@ -6,7 +5,6 @@ import 'package:admin/utils/global_bloc.dart';
 import 'package:admin/utils/persistence/screen_arguments.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 
 class ProjectPage extends StatefulWidget {
@@ -20,6 +18,8 @@ class ProjectPage extends StatefulWidget {
 }
 
 class _ProjectPageState extends State<ProjectPage> {
+  final AuthAPI _authAPI = AuthAPI();
+
   @override
   void initState() {
     super.initState();
@@ -30,38 +30,6 @@ class _ProjectPageState extends State<ProjectPage> {
     final GlobalBloc globalBloc =
         Provider.of<GlobalBloc>(context, listen: false);
     globalBloc.onUserLogin(widget.token);
-  }
-
-  Future<void> postProject(
-      String name, DateTime startDate, String target, String status) async {
-    AuthAPI _authAPI = AuthAPI();
-    final response = await http.post(
-      _authAPI.makeProjectPath,
-      headers: {
-        'Content-Type': 'application/json; charset=UTF-8',
-        'Authorization': 'Bearer ${widget.token}',
-      },
-      body: jsonEncode({
-        'projectId': '', // This is a unique identifier for the project
-        'name': name, // Name of the project
-        'startDate': startDate
-            .toUtc()
-            .toIso8601String(), //startDate, // Start date in ISO 8601 format
-        'target': target, // The target goal of the project
-        'callsCompleted':
-            0, // Number of calls or actions completed towards the project
-        'status': status, // The current status of the project
-      }),
-    );
-
-    if (response.statusCode == 200) {
-      // Handle the response body if the call was successful
-      print('Success: ${response.body}');
-      _loadUserData();
-    } else {
-      // Handle the error
-      print('Failed to post project. StatusCode: ${response.statusCode}');
-    }
   }
 
   void _showAddProjectDialog(
@@ -94,7 +62,6 @@ class _ProjectPageState extends State<ProjectPage> {
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        // To reflect changes in dropdown, using StatefulBuilder to rebuild the AlertDialog widget
         return StatefulBuilder(
           builder: (context, setState) {
             return AlertDialog(
@@ -160,8 +127,12 @@ class _ProjectPageState extends State<ProjectPage> {
                 TextButton(
                   child: Text('Add'),
                   onPressed: () {
-                    postProject(projectNameController.text, startDate!,
-                        targetController.text, selectedStatus.toString());
+                    _authAPI.postProject(
+                        widget.token,
+                        projectNameController.text,
+                        startDate!,
+                        targetController.text,
+                        selectedStatus.toString());
                     Navigator.of(context).pop();
                   },
                 ),
