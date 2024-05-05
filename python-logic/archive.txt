@@ -57,3 +57,22 @@ def separate_emails(thread):
             separated_emails[thread_id] = []
         separated_emails[thread_id].append(email)
     return separated_emails
+
+
+for email in emails:
+            email_dict = {
+                'subject': email.get('subject', 'No Subject'),
+                'from': email.get('sender', {}).get('emailAddress', {}).get('address', 'Unknown Email'),
+                #'to': ', '.join([rec.get('emailAddress', {}).get('address', 'Unknown Email') for rec in email.get('toRecipients', [])]),
+                'body': email.get('body', {}).get('content', 'No Content')
+            }
+
+            # Checking for attachments
+            has_attachments = email.get('hasAttachments', False)
+            if has_attachments:
+                attachment_url = f"https://graph.microsoft.com/v1.0/users/{user_id_or_principal_name}/messages/{email['id']}/attachments"
+                attachment_response = requests.get(attachment_url, headers=headers)
+                attachments = attachment_response.json().get('value', [])
+                email_dict['Attachments'] = [attachment.get('name', 'Unnamed Attachment') for attachment in attachments]
+            else:
+                email_dict['Attachments'] = []

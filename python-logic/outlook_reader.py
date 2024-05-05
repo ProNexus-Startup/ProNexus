@@ -90,24 +90,55 @@ company_info = {
 }
 #endregion
 
-#region Configure Email Stuff
-authority_url = f'https://login.microsoftonline.com/{tenant_id}'
-scope = ['https://graph.microsoft.com/.default']
-app = ConfidentialClientApplication(
-    client_id,
-    authority=authority_url,
-    client_credential=client_secret,
-)
+#region Get Emails
+def read_emails():
+    authority_url = f'https://login.microsoftonline.com/{tenant_id}'
+    scope = ['https://graph.microsoft.com/.default']
+    app = ConfidentialClientApplication(
+        client_id,
+        authority=authority_url,
+        client_credential=client_secret,
+    )
 
-token_response = app.acquire_token_for_client(scopes=scope)
-if "access_token" in token_response:
-    access_token = token_response['access_token']
-    # Set up API call with additional properties
-    url = f'https://graph.microsoft.com/v1.0/users/{user_id_or_principal_name}/messages?$filter=isRead eq false&$select=subject,sender,toRecipients,hasAttachments,body'
-    headers = {'Authorization': f'Bearer {access_token}', 'Content-Type': 'application/json'}
+    token_response = app.acquire_token_for_client(scopes=scope)
+    if "access_token" in token_response:
+        access_token = token_response['access_token']
+        # Set up API call with additional properties
+        url = f'https://graph.microsoft.com/v1.0/users/{user_id_or_principal_name}/messages?$filter=isRead eq false&$select=subject,sender,toRecipients,hasAttachments,body'
+        headers = {'Authorization': f'Bearer {access_token}', 'Content-Type': 'application/json'}
+
+    response = requests.get(url, headers=headers)
+    if response.status_code == 200:
+        emails = response.json().get('value', [])
+        return emails
+    else:
+        print(f"Failed to retrieve emails. Status code: {response.status_code}")
+        print(f"Error message: {response.text}")
+        return None
+
+def parse_emails_from_thread(text):
+    email_message = EmailReplyParser.read(text)
+    emails = []
+    current_email = []
+
+    # Go through each fragment and collect those that aren't hidden
+    for fragment in email_message.fragments:
+        if not fragment.hidden:
+            current_email.append(fragment.content)
+        elif fragment.headers and current_email:
+            # When a header is found and we have collected some fragments, assume it's a new email
+            emails.append('\n'.join(current_email))
+            current_email = []
+
+    # Add the last collected email if any fragments were collected after the last header
+    if current_email:
+        emails.append('\n'.join(current_email))
+
+    return emails
+
 #endregion
 
-# Get information for backend
+#region Get information for backend
 def get_expert_info(email):
     email_body = email.get_payload(decode=True)
     subject = email['subject']
@@ -175,8 +206,9 @@ def get_call_info(email, user_email):
     call["meetingStartDate"] =  email.get('start', {}).get('dateTime', 'No Start Time')
     call["meetingEndDate"] = email.get('end', {}).get('dateTime', 'No End Time')
     return call
+#endregion
 
-# Backend Interaction
+#region Backend Interaction
 def send_to_backend(data, token, id, path, company=None):
     headers = {
         'Content-Type': 'application/json',
@@ -206,18 +238,14 @@ def get_from_backend(user_email, path):
         print(f"Response: {response.text}")
         return none
 
-# Mark email as read
 def mark_email_read(id):
     mark_read_url = f'https://graph.microsoft.com/v1.0/users/{user_id_or_principal_name}/messages/{id}'
     mark_read_data = {'isRead': True}
     mark_response = requests.patch(mark_read_url, headers=headers, json=mark_read_data)    
+#endregion
 
-# Route how to process email information
-def route_data(email):
-    #if isinstance(email, str):
-        # This assumes email is a string if parsed incorrectly; adjust as needed.
-        #email = json.loads(email)
-    
+#region route emails
+def route_data(email):    
     for key, value in email.items():
         print(key, value)
     
@@ -255,63 +283,43 @@ def route_data(email):
     else:
         print("Domain not found in company info")
         return "none"
+#endregion
 
 # Read email and process
-def read_email(url: str, headers: dict, backend_password: str):
-    response = requests.get(url, headers=headers)
-    if response.status_code == 200:
-        emails = response.json().get('value', [])
-        for email in emails:
-            print(email)
-            email_dict = {
-                'subject': email.get('subject', 'No Subject'),
-                'from': email.get('sender', {}).get('emailAddress', {}).get('address', 'Unknown Email'),
-                #'to': ', '.join([rec.get('emailAddress', {}).get('address', 'Unknown Email') for rec in email.get('toRecipients', [])]),
-                'body': email.get('body', {}).get('content', 'No Content')
-            }
+def primary_func(backend_password: str):
 
-            # Checking for attachments
-            has_attachments = email.get('hasAttachments', False)
-            if has_attachments:
-                attachment_url = f"https://graph.microsoft.com/v1.0/users/{user_id_or_principal_name}/messages/{email['id']}/attachments"
-                attachment_response = requests.get(attachment_url, headers=headers)
-                attachments = attachment_response.json().get('value', [])
-                email_dict['Attachments'] = [attachment.get('name', 'Unnamed Attachment') for attachment in attachments]
-            else:
-                email_dict['Attachments'] = []
-
-            route = route_data(email_dict)  # Pass the whole email dictionary
-            if route == "call":
-                call_info = get_call_info(email=email_dict)  # Assuming `get_call_info` needs only the body
-                if call_info:
-                    send_to_backend(
-                        data=call_info,
-                        token=backend_password + email['from'],
-                        path='make-call'
-                    )
-            elif route == "none":
-                continue
-            else:
-                expert_data = get_expert_info(email=parsed_email)
-                if expert_data != "No Expert Found":
-                    for expert in expert_data:
-                        send_to_backend(
-                            data=expert,
-                            company=route,
-                            token=backend_password + email_data['sender']['address'],
-                            id=email_data['id'],
-                            path="make-expert"
-                        )
+    email_list = read_emails()
+    if email_list is None:
+        return None
+    # Fix below
+    route = route_data(email_dict)
+    if route == "call":
+        call_info = get_call_info(email=email_dict)
+        if call_info:
+            send_to_backend(
+                data=call_info,
+                token=backend_password + email['from'],
+                path='make-call'
+            )
+    elif route == "none":
+        continue
     else:
-        print(f"Failed to retrieve emails. Status code: {response.status_code}")
-        print(f"Error message: {response.text}")
-
+        expert_data = get_expert_info(email=parsed_email)
+        if expert_data != "No Expert Found":
+            for expert in expert_data:
+                send_to_backend(
+                    data=expert,
+                    company=route,
+                    token=backend_password + email_data['sender']['address'],
+                    id=email_data['id'],
+                    path="make-expert"
+                )
 
 
 def main():
     try:
         while True:
-            read_email(url=url, headers=headers, backend_password=BACKEND_PASSWORD)
+            primary_func(backend_password=BACKEND_PASSWORD)
             #time.sleep(60)
     except KeyboardInterrupt:
         print("Program stopped manually.")
