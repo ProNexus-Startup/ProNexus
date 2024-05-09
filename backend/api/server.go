@@ -5,10 +5,6 @@ import (
 	"fmt"
 	"net/http"
 	"time"
-	//"github.com/aws/aws-sdk-go/aws"
-	//"github.com/aws/aws-sdk-go/aws/session"
-	//"github.com/aws/aws-sdk-go/service/s3/s3manager"
-	//"github.com/gorilla/mux"	
 	"github.com/rpupo63/ProNexus/backend/config"
 	"github.com/rpupo63/ProNexus/backend/database"
 	"github.com/go-chi/chi/v5"
@@ -86,12 +82,14 @@ func newRouter(database database.Database, opts ...func(*router)) *chi.Mux {
 	chiRouter.Group(func(r chi.Router) {
 		r.Use(authMiddleware.authenticate)
 		r.Get("/me", userHandler.getMe())
-		//r.Get("/org", organizationHandler.getOrganization())
+		r.Get("/users", organizationHandler.getUsers())
 		r.Get("/expert-list", AvailableExpertHandler.getAllAvailableExperts())
 		r.Get("/experts", AvailableExpertHandler.getExpertsByUserEmail())
 		r.Post("/make-expert", AvailableExpertHandler.makeAvailableExpert())
+		r.Post("/manually-make-expert", AvailableExpertHandler.manuallyMakeAvailableExpert())
 		r.Get("/calls-list", CallTrackerHandler.getAllCallTrackers())
 		r.Post("/make-call", CallTrackerHandler.makeCallTracker())
+		r.Post("/manually-make-call", AvailableExpertHandler.manuallyMakeCallTracker())
 		r.Get("/projects-list", ProjectHandler.getAllProjects())
 		r.Post("/make-project", ProjectHandler.makeProject())
 		r.Post("/signature", userHandler.makeSignature())

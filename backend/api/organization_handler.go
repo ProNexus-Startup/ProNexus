@@ -12,6 +12,7 @@ import (
 	"github.com/rpupo63/ProNexus/backend/errs"
 	"github.com/google/uuid"
 	"errors"
+    "strings"
 
 )
 
@@ -38,27 +39,6 @@ func newOrganizationHandler(organizationRepo database.OrganizationRepo, userRepo
         projectRepo:         projectRepo,
     }
 }
-
-/*
-func (h organizationHandler) getOrganization() http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		ctx := r.Context()
-		organizationID, err := ctxGetOrganizationID(ctx)
-		if err != nil {
-			h.responder.writeError(w, fmt.Errorf("error getting organizationID: %v", err))
-			return
-		}
-
-		organization, err := h.organizationRepo.FindByID(organizationID)
-		if err != nil {
-			h.responder.writeError(w, err)
-			return
-		}
-
-		h.responder.writeJSON(w, organization)
-		return
-	}
-}*/
 
 func (h organizationHandler) makeOrg() http.HandlerFunc {
     return func(w http.ResponseWriter, r *http.Request) {
@@ -97,5 +77,39 @@ func (h organizationHandler) makeOrg() http.HandlerFunc {
         }
 
         h.responder.writeJSON(w, map[string]string{"status": "success", "message": "organization created successfully", "organizationID": newOrg.ID})
+    }
+}
+
+func (h organizationHandler) getUsers() http.HandlerFunc {
+    return func(w http.ResponseWriter, r *http.Request){
+        token := r.Header.Get("Authorization")
+        if token == "" {
+            h.responder.writeError(w, fmt.Errorf("no Authorization header provided"))
+            return
+        }
+
+        token = strings.TrimPrefix(token, "Bearer ")
+
+        // Now passing the token and the tokenSecret to validateToken
+        user, err := validateToken(token)
+        if err != nil {
+            h.responder.writeError(w, fmt.Errorf("invalid token: %v", err))
+            return
+        }
+        
+        if !user.Admin {
+            h.responder.writeJSON(w, http.StatusForbidden)
+            return
+        }
+
+        var users []models.User
+        users, err = h.userRepo.FindByOrganization(user.OrganizationID)
+        
+        if err != nil {
+            h.responder.writeError(w, fmt.Errorf("error fetching users: %v", err))
+            return
+        }
+
+        h.responder.writeJSON(w, users)
     }
 }

@@ -49,7 +49,6 @@ class _LoginPageState extends State<LoginPage> {
       print(req.statusCode);
       if (req.statusCode == 200) {
         var token = jsonDecode(req.body);
-        print(token);
         await SecureStorage().write('token', token);
         if (!context.mounted) {
           return;

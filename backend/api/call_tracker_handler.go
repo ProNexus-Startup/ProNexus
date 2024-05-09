@@ -142,3 +142,43 @@ func (h callTrackerHandler) getAllCallTrackers() http.HandlerFunc {
         h.responder.writeJSON(w, callTrackers)
     }
 }
+
+func (h callTrackerHandler) manuallyMakeCallTracker() http.HandlerFunc {
+    return func(w http.ResponseWriter, r *http.Request) {
+        // Extracting the email from the Authorization header
+        authHeader := r.Header.Get("Authorization")
+        if authHeader == "" {
+            h.responder.writeError(w, fmt.Errorf("No authorization header provided"))
+            return
+        }
+        
+        // Ensure the token starts with "Bearer "
+        if !strings.HasPrefix(authHeader, "Bearer ") {
+            h.responder.writeError(w, fmt.Errorf("Authorization header must start with 'Bearer '"))
+            return
+        }
+
+        token := strings.TrimPrefix(authHeader, "Bearer ")
+
+        user, err := h.userRepo.FindByToken(email)
+        if err != nil {
+            h.responder.writeError(w, fmt.Errorf("Error retrieving user: %v", err))
+            return
+        }
+        log.Printf("User found: %s", user.Email)
+
+        var callTracker models.CallTracker
+        if err := json.NewDecoder(r.Body).Decode(&callTracker); err != nil {
+            h.responder.writeError(w, fmt.Errorf("Malformed call tracker details: %v", err))
+            return
+        }
+
+        if err := h.callTrackerRepo.Insert(user.OrganizationID, callTracker); err != nil {
+            h.responder.writeError(w, fmt.Errorf("Error inserting call tracker: %v", err))
+            return
+        }
+
+		h.responder.writeJSON(w, "call tracker made successfully")
+
+    }
+}

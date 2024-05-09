@@ -47,7 +47,7 @@ class _OrgRegisterPageState extends State<OrgRegisterPage> {
         String orgID = data['organizationID'];
         await SecureStorage().write('organizationID', orgID);
         Navigator.pushNamed(context, UserRegisterPage.routeName,
-            arguments: ScreenArguments(orgID, "emptytoken"));
+            arguments: ScreenArguments(orgID));
         const SnackBar(content: Text('Organization succesfully registered.'));
       } else {
         const SnackBar(content: Text('Problem registering.'));

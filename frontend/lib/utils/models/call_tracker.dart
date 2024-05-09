@@ -1,39 +1,40 @@
 class CallTracker {
-  bool? isSelected = false;
-  final String expertId;
+  bool isSelected = false;
+  bool favorite = false;
+  final String
+      expertId; // Adjusted to be consistent with the backend model field name `ID`
   String name;
   String projectId;
-  bool? favorite = false;
   String title;
   String company;
   String companyType;
-  String yearsAtCompany;
+  int yearsAtCompany; // Changed from String to int
   String description;
   String geography;
   String angle;
   String status;
-  final int? AIAssessment;
-  String? comments;
-  final String availability;
-  final String expertNetworkName;
+  String AIAssessment; // Changed from `int?` to `String` to match the backend
+  String comments;
+  String availability;
+  String expertNetworkName;
   double cost;
   List<String> screeningQuestions;
   String addedExpertBy;
   DateTime dateAddedExpert;
   String addedCallBy;
   DateTime dateAddedCall;
-  bool inviteSent;
+  bool inviteSent = false; // Default value adjusted to non-nullable
   DateTime meetingStartDate;
   DateTime meetingEndDate;
   bool paidStatus;
   int rating;
 
   CallTracker({
-    this.isSelected,
+    this.isSelected = false, // Default provided in constructor
     required this.expertId,
     required this.name,
     required this.projectId,
-    this.favorite,
+    this.favorite = false, // Default provided in constructor
     required this.title,
     required this.company,
     required this.companyType,
@@ -42,8 +43,8 @@ class CallTracker {
     required this.geography,
     required this.angle,
     required this.status,
-    this.AIAssessment,
-    this.comments,
+    required this.AIAssessment,
+    required this.comments,
     required this.availability,
     required this.expertNetworkName,
     required this.cost,
@@ -52,7 +53,7 @@ class CallTracker {
     required this.dateAddedExpert,
     required this.addedCallBy,
     required this.dateAddedCall,
-    required this.inviteSent,
+    this.inviteSent = false, // Default provided in constructor
     required this.meetingStartDate,
     required this.meetingEndDate,
     required this.paidStatus,
@@ -60,23 +61,16 @@ class CallTracker {
   });
 
   factory CallTracker.fromJson(Map<String, dynamic> json) {
-    var screeningQuestionsFromJson = json['screeningQuestions'];
-    List<String> screeningQuestionsList = [];
-    if (screeningQuestionsFromJson != null) {
-      screeningQuestionsList = List<String>.from(
-          screeningQuestionsFromJson.map((question) => question.toString()));
-    }
-
     return CallTracker(
       isSelected: json['isSelected'] ?? false,
       expertId: json['expertId'],
       name: json['name'],
       projectId: json['projectId'],
-      favorite: json['favorite'],
+      favorite: json['favorite'] ?? false,
       title: json['title'],
       company: json['company'],
       companyType: json['companyType'],
-      yearsAtCompany: json['yearsAtCompany'],
+      yearsAtCompany: json['yearsAtCompany'] as int, // Handle casting
       description: json['description'],
       geography: json['geography'],
       angle: json['angle'],
@@ -85,8 +79,9 @@ class CallTracker {
       comments: json['comments'],
       availability: json['availability'],
       expertNetworkName: json['expertNetworkName'],
-      cost: json['cost'].toDouble(),
-      screeningQuestions: screeningQuestionsList,
+      cost: json['cost'].toDouble(), // Ensure casting to double
+      screeningQuestions: List<String>.from(
+          json['screeningQuestions'].map((x) => x.toString())),
       addedExpertBy: json['addedExpertBy'],
       dateAddedExpert: DateTime.parse(json['dateAddedExpert']),
       addedCallBy: json['addedCallBy'],

@@ -1,9 +1,10 @@
 class AvailableExpert {
   bool isSelected = false; // Default to false instead of being nullable
+  bool favorite = false; // Default to false
+
   final String expertId;
   String name;
   String projectId;
-  bool favorite = false; // Default to false
   String title;
   String company;
   String companyType;

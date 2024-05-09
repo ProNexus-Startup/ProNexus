@@ -1,3 +1,5 @@
+import 'package:admin/pages/components/sub_menu.dart';
+import 'package:admin/pages/components/top_menu.dart';
 import 'package:admin/pages/schedule_meeting_screen.dart';
 import 'package:admin/responsive.dart';
 import 'package:admin/utils/models/available_expert.dart';
@@ -6,10 +8,9 @@ import 'package:admin/utils/BaseAPI.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../utils/constants.dart';
-import 'components/header.dart';
 
 class AvailableExpertsDashboard extends StatefulWidget {
-  final String token; // Username variable
+  final String token;
   static const routeName = '/experts';
 
   const AvailableExpertsDashboard({Key? key, required this.token})
@@ -37,43 +38,56 @@ class _AvailableExpertsDashboardState extends State<AvailableExpertsDashboard> {
     final GlobalBloc globalBloc =
         Provider.of<GlobalBloc>(context, listen: false);
 
-    return SingleChildScrollView(
-      primary: false,
-      padding: EdgeInsets.all(defaultPadding),
-      child: Column(
-        children: [
-          Header(),
-          SizedBox(height: defaultPadding),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                flex: 5,
-                child: Column(
+    return Scaffold(
+        appBar: PreferredSize(
+            preferredSize:
+                Size.fromHeight(100), // Set the height of the app bar
+            child: TopMenu()),
+        body: Column(children: [
+          SubMenu(
+            onItemSelected: (String item) {
+              print("Selected: $item"); // Example action
+            },
+            projectName: "Project name here later",
+          ),
+          Expanded(
+              child: SingleChildScrollView(
+            primary: false,
+            padding: EdgeInsets.all(defaultPadding),
+            child: Column(
+              children: [
+                SizedBox(height: defaultPadding),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    //ProgressSection(),
-                    SizedBox(height: defaultPadding),
-                    ExpertTable(),
-                    if (Responsive.isMobile(context))
-                      SizedBox(height: defaultPadding),
-                    // Adding the new ElevatedButton here
-                    ElevatedButton(
-                      onPressed: () {
-                        _authAPI.postExpert(globalBloc, widget.token);
-                      },
-                      child: Text('Add Expert'), // Button text
+                    Expanded(
+                      flex: 5,
+                      child: Column(
+                        children: [
+                          //ProgressSection(),
+                          SizedBox(height: defaultPadding),
+                          ExpertTable(),
+                          if (Responsive.isMobile(context))
+                            SizedBox(height: defaultPadding),
+                          // Adding the new ElevatedButton here
+                          ElevatedButton(
+                            onPressed: () {
+                              //_authAPI.postExpert(globalBloc, widget.token);
+                            },
+                            child: Text('Add Expert'), // Button text
+                          ),
+                          //if (Responsive.isMobile(context)) RoleTypes(),
+                        ],
+                      ),
                     ),
-                    //if (Responsive.isMobile(context)) RoleTypes(),
+                    if (!Responsive.isMobile(context))
+                      SizedBox(width: defaultPadding),
                   ],
-                ),
-              ),
-              if (!Responsive.isMobile(context))
-                SizedBox(width: defaultPadding),
-            ],
-          )
-        ],
-      ),
-    );
+                )
+              ],
+            ),
+          ))
+        ]));
   }
 }
 

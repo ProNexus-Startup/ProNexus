@@ -8,33 +8,34 @@ import 'package:http/http.dart' as http;
 
 class BaseAPI {
   static String api =
-      "pronexus-production.up.railway.app"; //"https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"
+      "http://localhost:8080"; //"pronexus-production.up.railway.app"; //"https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"
   Uri userPath = Uri.parse('$api/me');
+  Uri usersPath = Uri.parse('$api/users');
   Uri loginPath = Uri.parse('$api/login');
   Uri logoutPath = Uri.parse("$api/logout");
   Uri makeOrgPath = Uri.parse("$api/makeorg");
   Uri signupPath = Uri.parse("$api/signup");
   Uri questionnairePath = Uri.parse("$api/user/profile");
   Uri expertsPath = Uri.parse("$api/expert-list");
-  Uri makeExpertsPath = Uri.parse("$api/make-expert");
+  Uri makeExpertPath = Uri.parse("$api/manually-make-expert");
+  Uri makeCallPath = Uri.parse("$api/manually-make-call");
   Uri makeProjectPath = Uri.parse("$api/make-project");
   Uri projectsPath = Uri.parse("$api/projects-list");
-
   Uri callsPath = Uri.parse("$api/calls-list");
-  // more routes
+
   Map<String, String> headers = {
     "Content-Type": "application/json; charset=UTF-8"
   };
 }
 
 class AuthAPI extends BaseAPI {
-  Future<http.Response> signup(String fullName, String email, String password,
-      String organizationID) async {
+  Future<http.Response> signup(User user) async {
     var body = jsonEncode({
-      'fullName': fullName,
-      'email': email,
-      'password': password,
-      'organizationID': organizationID
+      'fullName': user.fullName,
+      'email': user.email,
+      'password': user.password,
+      'organizationID': user.organizationId,
+      'admin': user.admin,
     });
     http.Response response =
         await http.post(super.signupPath, headers: super.headers, body: body);
@@ -46,7 +47,6 @@ class AuthAPI extends BaseAPI {
     var body = jsonEncode({'name': orgName});
     var headers = {
       'Content-Type': 'application/json',
-      // Add any other necessary headers here, like authorization tokens
     };
 
     try {
@@ -86,12 +86,11 @@ class AuthAPI extends BaseAPI {
   }
 
   Future<User> getUser(String token) async {
-    AuthAPI _authAPI = AuthAPI();
     try {
-      final response = await http.get(_authAPI.userPath,
-          headers: {"Authorization": "Bearer ${token}"});
+      final response = await http
+          .get(userPath, headers: {"Authorization": "Bearer ${token}"});
       if (response.statusCode == 200) {
-        User user = User.fromJson(response.body);
+        User user = User.fromJson(json.decode(response.body));
         return user;
       } else {
         return User.defaultUser();
@@ -101,26 +100,40 @@ class AuthAPI extends BaseAPI {
     }
   }
 
-  Future<List<AvailableExpert>> getExperts(String token) async {
-    AuthAPI _authAPI = AuthAPI();
+  Future<List<User>> getUsers(String token) async {
     try {
-      final response = await http.get(
-          _authAPI
-              .expertsPath, // Updated path to include query for organizationID
-          headers: {"Authorization": "Bearer ${token}"});
+      final response = await http
+          .get(usersPath, headers: {"Authorization": "Bearer $token"});
+      if (response.statusCode == 200) {
+        List<User> users = (json.decode(response.body) as List)
+            .map((data) => User.fromJson(data))
+            .toList();
 
-      // Check the response status
+        return users;
+      } else {
+        print("Error: ${response.body}");
+        return [User.defaultUser()];
+      }
+    } catch (e) {
+      print("Exception caught: $e");
+      return [User.defaultUser()];
+    }
+  }
+
+  Future<List<AvailableExpert>> getExperts(String token) async {
+    try {
+      final response = await http
+          .get(expertsPath, // Updated path to include query for organizationID
+              headers: {"Authorization": "Bearer ${token}"});
+
       if (response.statusCode == 200) {
         // Decode the JSON response
         var decoded = json.decode(response.body);
-
-        // Assuming the decoded response is a List of maps, we need to iterate over them
-        // and convert each item to an AvailableExpert instance
         List<AvailableExpert> experts = List.from(decoded)
             .map((expertJson) => AvailableExpert.fromJson(expertJson))
             .toList();
 
-        return experts; // Return the list of experts
+        return experts;
       } else {
         // Log or handle the error response properly
         print(
@@ -135,12 +148,10 @@ class AuthAPI extends BaseAPI {
   }
 
   Future<List<CallTracker>> getCalls(String token) async {
-    AuthAPI _authAPI = AuthAPI();
     try {
-      final response = await http.get(
-          _authAPI
-              .callsPath, // Updated path to include query for organizationID
-          headers: {"Authorization": "Bearer ${token}"});
+      final response = await http
+          .get(callsPath, // Updated path to include query for organizationID
+              headers: {"Authorization": "Bearer ${token}"});
       if (response.statusCode == 200) {
         var decoded = json.decode(response.body);
 
@@ -162,12 +173,10 @@ class AuthAPI extends BaseAPI {
   }
 
   Future<List<Project>> getProjects(String token) async {
-    AuthAPI _authAPI = AuthAPI();
     try {
-      final response = await http.get(
-          _authAPI
-              .projectsPath, // Updated path to include query for organizationID
-          headers: {"Authorization": "Bearer ${token}"});
+      final response = await http
+          .get(projectsPath, // Updated path to include query for organizationID
+              headers: {"Authorization": "Bearer ${token}"});
       if (response.statusCode == 200) {
         var decoded = json.decode(response.body);
 
@@ -189,10 +198,9 @@ class AuthAPI extends BaseAPI {
     }
   }
 
-  Future<void> postExpert(globalBloc, token) async {
-    AuthAPI _authAPI = AuthAPI();
+  Future<void> postExpert(String token, AvailableExpert expert) async {
     final response = await http.post(
-      _authAPI.makeExpertsPath,
+      makeExpertPath,
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer ${token}',
@@ -224,7 +232,6 @@ class AuthAPI extends BaseAPI {
     if (response.statusCode == 200) {
       // Handle the response body if the call was successful
       print('Success: ${response.body}');
-      globalBloc.onUserLogin(token);
     } else {
       // Handle the error
       print(
@@ -232,11 +239,71 @@ class AuthAPI extends BaseAPI {
     }
   }
 
+  Future<void> makeCall(String token, CallTracker callTracker) async {
+    // Encode the callTracker data into JSON
+    var body = jsonEncode({
+      'organizationID': callTracker.organizationID,
+      'callTracker': callTracker.callTracker
+          .map((ct) => {
+                'expertId': ct.ID,
+                'name': ct.Name,
+                'projectId': ct.ProjectID,
+                'favorite': ct.Favorite,
+                'title': ct.Title,
+                'company': ct.Company,
+                'companyType': ct.CompanyType,
+                'yearsAtCompany': ct.YearsAtCompany,
+                'description': ct.Description,
+                'geography': ct.Geography,
+                'angle': ct.Angle,
+                'status': ct.Status,
+                'AIAssessment': ct.AIAssessment,
+                'comments': ct.Comments,
+                'availability': ct.Availability,
+                'expertNetworkName': ct.ExpertNetworkName,
+                'cost': ct.Cost,
+                'screeningQuestions': ct.ScreeningQuestions,
+                'addedExpertBy': ct.AddedExpertBy,
+                'dateAddedExpert': ct.DateAddedExpert.toIso8601String(),
+                'addedCallBy': ct.AddedCallBy,
+                'dateAddedCall': ct.DateAddedCall.toIso8601String(),
+                'inviteSent': ct.InviteSent,
+                'meetingStartDate': ct.MeetingStartDate.toIso8601String(),
+                'meetingEndDate': ct.MeetingEndDate.toIso8601String(),
+                'paidStatus': ct.PaidStatus,
+                'rating': ct.Rating,
+              })
+          .toList()
+    });
+
+    try {
+      // Set up the request headers
+      var headers = {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      };
+
+      // Send the POST request
+      var response =
+          await http.post(makeCallPath, headers: headers, body: body);
+
+      // Check the response status
+      if (response.statusCode == 200) {
+        print('Call tracker created successfully.');
+      } else {
+        print(
+            'Failed to create call tracker. Status code: ${response.statusCode}');
+        print('Response body: ${response.body}');
+      }
+    } catch (e) {
+      print('Error occurred while sending request: $e');
+    }
+  }
+
   Future<void> postProject(String token, String name, DateTime startDate,
       String target, String status) async {
-    AuthAPI _authAPI = AuthAPI();
     final response = await http.post(
-      _authAPI.makeProjectPath,
+      makeProjectPath,
       headers: {
         'Content-Type': 'application/json; charset=UTF-8',
         'Authorization': 'Bearer ${token}',
@@ -264,9 +331,8 @@ class AuthAPI extends BaseAPI {
   }
 
   Future<http.Response> logout(String token) async {
-    AuthAPI _authAPI = AuthAPI();
     final response = await http.post(
-      _authAPI.logoutPath,
+      logoutPath,
       headers: {
         'Authorization': token,
       },

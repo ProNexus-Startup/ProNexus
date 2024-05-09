@@ -2,15 +2,11 @@ package models
 
 import "time"
 
-type OrganizationIDAndCallTracker struct {
-	OrganizationID string `json:"organizationID"`
-	CallTracker []CallTracker // Changed to correctly reflect the new structure of AvailableExpert
-}
-
 type CallTracker struct {
     ID                 string    `json:"expertId" db:"expert_id"`
     Name               string    `json:"name" db:"name"`
     ProjectID		   string    `json:"projectId" db:"project_id"`
+    OrganizationID	   string 	 `json:"organizationId" db:"organization_id"`
     Favorite           bool      `json:"favorite" db:"favorite"`
     Title              string    `json:"title" db:"title"`
     Company            string    `json:"company" db:"company"`

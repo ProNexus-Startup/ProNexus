@@ -1,14 +1,10 @@
 package models
 import "time"
 
-type OrganizationIDAndAvailableExpert struct {
-	OrganizationID string `json:"organizationID"`
-	AvailableExpert []AvailableExpert
-}
-
 type AvailableExpert struct {
 	ID                 string    `json:"expertId" db:"expert_id"`
 	Name               string    `json:"name" db:"name"`
+	OrganizationID	   string 	 `json:"organizationId" db:"organization_id"`
 	ProjectID		   string    `json:"projectId" db:"project_id"`
 	Favorite           bool      `json:"favorite" db:"favorite"`
 	Title              string    `json:"title" db:"title"`

@@ -12,7 +12,4 @@ class MenuAppController extends ChangeNotifier {
   }
 }
 
-enum AppPage {
-  availableExperts,
-  callTracker,
-}
+enum AppPage { availableExperts, callTracker, adminPage }

@@ -98,7 +98,7 @@ func (h availableExpertHandler) deleteAvailableExpert() http.HandlerFunc {
 
         token = strings.TrimPrefix(token, "Bearer ")
 
-        // Now passing the token and the tokenSecret to validateToken
+        // postENow passing the token and the tokenSecret to validateToken
         user, err := validateToken(token)
         if err != nil {
             h.responder.writeError(w, fmt.Errorf("invalid token: %v", err))

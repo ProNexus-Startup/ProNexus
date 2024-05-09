@@ -1,15 +1,17 @@
+import 'package:admin/pages/components/sub_menu.dart';
+import 'package:admin/pages/components/top_menu.dart';
 import 'package:admin/pages/schedule_meeting_screen.dart';
 import 'package:admin/responsive.dart';
-import 'package:admin/utils/models/available_expert.dart';
 import 'package:admin/utils/global_bloc.dart';
+import 'package:admin/utils/BaseAPI.dart';
+import 'package:admin/utils/models/call_tracker.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../utils/constants.dart';
-import 'components/header.dart';
 
 class CallTrackerDashboard extends StatefulWidget {
-  final String token; // Username variable
-  static const routeName = '/experts';
+  final String token;
+  static const routeName = '/calls';
 
   const CallTrackerDashboard({Key? key, required this.token}) : super(key: key);
 
@@ -18,8 +20,11 @@ class CallTrackerDashboard extends StatefulWidget {
 }
 
 class _CallTrackerDashboardState extends State<CallTrackerDashboard> {
+  final AuthAPI _authAPI = AuthAPI();
+
   bool isAnySelected = false;
 
+  // Update this based on checkbox changes
   void updateSelection(bool isSelected) {
     setState(() {
       isAnySelected = isSelected;
@@ -28,34 +33,70 @@ class _CallTrackerDashboardState extends State<CallTrackerDashboard> {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      primary: false,
-      padding: EdgeInsets.all(defaultPadding),
-      child: Column(
-        children: [
-          Header(),
-          SizedBox(height: defaultPadding),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              if (!Responsive.isMobile(context))
-                SizedBox(width: defaultPadding),
-            ],
-          )
-        ],
-      ),
-    );
+    final GlobalBloc globalBloc =
+        Provider.of<GlobalBloc>(context, listen: false);
+
+    return Scaffold(
+        appBar: PreferredSize(
+            preferredSize:
+                Size.fromHeight(100), // Set the height of the app bar
+            child: TopMenu()),
+        body: Column(children: [
+          SubMenu(
+            onItemSelected: (String item) {
+              print("Selected: $item"); // Example action
+            },
+            projectName: "Project name here later",
+          ),
+          Expanded(
+              child: SingleChildScrollView(
+            primary: false,
+            padding: EdgeInsets.all(defaultPadding),
+            child: Column(
+              children: [
+                SizedBox(height: defaultPadding),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      flex: 5,
+                      child: Column(
+                        children: [
+                          //ProgressSection(),
+                          SizedBox(height: defaultPadding),
+                          CallTable(),
+                          if (Responsive.isMobile(context))
+                            SizedBox(height: defaultPadding),
+                          // Adding the new ElevatedButton here
+                          ElevatedButton(
+                            onPressed: () {
+                              //_authAPI.postCall(globalBloc, widget.token);
+                            },
+                            child: Text('Add Call'), // Button text
+                          ),
+                          //if (Responsive.isMobile(context)) RoleTypes(),
+                        ],
+                      ),
+                    ),
+                    if (!Responsive.isMobile(context))
+                      SizedBox(width: defaultPadding),
+                  ],
+                )
+              ],
+            ),
+          ))
+        ]));
   }
 }
 
-class ExpertTable extends StatefulWidget {
+class CallTable extends StatefulWidget {
   @override
-  _ExpertTableState createState() => _ExpertTableState();
+  _CallTableState createState() => _CallTableState();
 }
 
-class _ExpertTableState extends State<ExpertTable> {
-  bool areAllSelected(List<AvailableExpert> experts) {
-    return experts.every((expert) => expert.isSelected);
+class _CallTableState extends State<CallTable> {
+  bool areAllSelected(List<CallTracker> calls) {
+    return calls.every((call) => call.isSelected);
   }
 
   @override
@@ -96,11 +137,11 @@ class _ExpertTableState extends State<ExpertTable> {
                         DataColumn(label: Text("Comments from Network")),
                         DataColumn(label: Text("Availability")),
                       ],
-                      rows: globalBloc.expertList
-                          //.where((expert) => globalBloc.applyFilters(
-                          //  expert)) // Ensure filtering logic is applied
-                          .map<DataRow>((expert) => recentFileDataRow(
-                              context, expert, globalBloc.toggleFavorite))
+                      rows: globalBloc.callList
+                          //.where((call) => globalBloc.applyFilters(
+                          //  call)) // Ensure filtering logic is applied
+                          .map<DataRow>((call) => recentFileDataRow(
+                              context, call, globalBloc.toggleFavorite))
                           .toList(),
                     ),
                   ),
@@ -113,10 +154,10 @@ class _ExpertTableState extends State<ExpertTable> {
     });
   }
 
-  DataRow recentFileDataRow(BuildContext context, AvailableExpert expert,
-      void Function(AvailableExpert) toggleFavorite) {
+  DataRow recentFileDataRow(BuildContext context, CallTracker call,
+      void Function(CallTracker) toggleFavorite) {
     // Method to show the popup menu
-    void _showPopupMenu(BuildContext context, AvailableExpert expert) async {
+    void _showPopupMenu(BuildContext context, CallTracker call) async {
       final RenderBox overlay =
           Overlay.of(context).context.findRenderObject() as RenderBox;
       final RelativeRect position = RelativeRect.fromRect(
@@ -148,15 +189,14 @@ class _ExpertTableState extends State<ExpertTable> {
       if (selectedItem != null) {
         switch (selectedItem) {
           case 'scheduleMeeting':
-            // Navigate to the EditExpertScreen with the selected expert
             Navigator.of(context).push(
               MaterialPageRoute(
-                builder: (context) => ScheduleMeeting(), //expert: expert),
+                builder: (context) => ScheduleMeeting(),
               ),
             );
             break;
           case 'delete':
-            print('Delete action on ${expert.name}');
+            print('Delete action on ${call.name}');
             // Handle delete action
             break;
           // Handle other cases as necessary
@@ -168,17 +208,17 @@ class _ExpertTableState extends State<ExpertTable> {
       onSelectChanged: (bool? selected) {
         if (selected ?? false) {
           // This is where you handle the row selection. For demonstration, we show the popup menu.
-          _showPopupMenu(context, expert);
+          _showPopupMenu(context, call);
         }
       },
       cells: [
         DataCell(
           IconButton(
             icon: Icon(
-              expert.favorite ? Icons.star : Icons.star_border,
-              color: expert.favorite ? Colors.yellow : null,
+              call.favorite ? Icons.star : Icons.star_border,
+              color: call.favorite ? Colors.yellow : null,
             ),
-            onPressed: () => toggleFavorite(expert),
+            onPressed: () => toggleFavorite(call),
           ),
         ),
         DataCell(
@@ -208,18 +248,18 @@ class _ExpertTableState extends State<ExpertTable> {
                 }
               });
             },
-            child: Text(expert.name),
+            child: Text(call.name),
           ),
         ),
-        DataCell(Text(expert.title)),
-        DataCell(Text(expert.company)),
-        DataCell(Text('${expert.yearsAtCompany}')),
-        DataCell(Text(expert.geography)),
-        DataCell(Text(expert.angle)),
-        DataCell(Text(expert.status)),
-        DataCell(Text('${expert.AIAssessment}')),
-        DataCell(Text(expert.comments ?? '')),
-        DataCell(Text(expert.availability)),
+        DataCell(Text(call.title)),
+        DataCell(Text(call.company)),
+        DataCell(Text('${call.yearsAtCompany}')),
+        DataCell(Text(call.geography)),
+        DataCell(Text(call.angle)),
+        DataCell(Text(call.status)),
+        DataCell(Text('${call.AIAssessment}')),
+        DataCell(Text(call.comments ?? '')),
+        DataCell(Text(call.availability)),
       ],
     );
   }

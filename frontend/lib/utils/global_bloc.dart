@@ -69,10 +69,12 @@ class GlobalBloc with ChangeNotifier {
     expertList = [];
     callList = [];
     projectList = [];
+    userList = [];
     currentUser = User.defaultUser();
   }
 
   late List<Project> projectList;
+  late List<User> userList;
   late List<AvailableExpert> expertList;
   late List<CallTracker> callList;
   late User currentUser;
@@ -80,6 +82,7 @@ class GlobalBloc with ChangeNotifier {
   List<AvailableExpert> get expertListStream => expertList;
   List<CallTracker> get callListStream => callList;
   List<Project> get projectListStream => projectList;
+  List<User> get userListStream => userList;
 
   Future<void> onUserLogin(String token) async {
     AuthAPI _authAPI = AuthAPI();
@@ -88,6 +91,7 @@ class GlobalBloc with ChangeNotifier {
     List<AvailableExpert> fetchedExperts = await _authAPI.getExperts(token);
     List<CallTracker> fetchedCalls = await _authAPI.getCalls(token);
     List<Project> fetchedProjects = await _authAPI.getProjects(token);
+    List<User> fetchedUsers = await _authAPI.getUsers(token);
 
     // Apply filtering based on the projectId
     if (projectIdFilter.isNotEmpty) {
@@ -103,6 +107,7 @@ class GlobalBloc with ChangeNotifier {
     this.expertList = fetchedExperts;
     this.callList = fetchedCalls;
     this.projectList = fetchedProjects;
+    this.userList = fetchedUsers;
 
     User user = await _authAPI.getUser(token);
     this.currentUser = user;
@@ -114,6 +119,7 @@ class GlobalBloc with ChangeNotifier {
     expertList = [];
     callList = [];
     projectList = [];
+    userList = [];
     currentUser = User.defaultUser();
     notifyListeners();
   }

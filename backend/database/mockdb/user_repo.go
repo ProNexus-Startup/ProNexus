@@ -99,3 +99,19 @@ func (r *UserRepo) Update(userFields models.User) error {
     }
     return nil
 }
+
+func (r *UserRepo) FindByOrganization(organizationID string) ([]models.User, error) {
+    var usersInOrg []models.User
+    for _, user := range *r.users {
+        if user.OrganizationID == organizationID {
+            usersInOrg = append(usersInOrg, user)
+        }
+    }
+
+    if len(usersInOrg) == 0 {
+        // Assuming errs.NewNotFound is a correct call to a custom error handling function
+        return nil, errs.NewNotFound("users for organization")
+    }
+
+    return usersInOrg, nil
+}

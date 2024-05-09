@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:admin/pages/splash_page.dart';
+import 'package:admin/utils/models/user.dart';
 import 'package:flutter/material.dart';
 //import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -17,11 +18,11 @@ import '../utils/BaseAPI.dart';
 //import 'home_page.dart';
 
 class UserRegisterPage extends StatefulWidget {
-  final String org;
+  final String token; // Here the token is the org
 
   static const routeName = '/user-registration';
 
-  const UserRegisterPage({Key? key, required this.org}) : super(key: key);
+  const UserRegisterPage({Key? key, required this.token}) : super(key: key);
 
   @override
   State<UserRegisterPage> createState() => _UserRegisterPageState();
@@ -50,15 +51,15 @@ class _UserRegisterPageState extends State<UserRegisterPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Checking email availability...')),
       );
-      print(widget.org);
+      print(widget.token);
+      User user = User(
+          email: emailController.text,
+          fullName: usernameController.text,
+          password: passwordController.text,
+          organizationId: widget.token,
+          admin: true);
       // Use the text property to get the string value from the controllers
-      var req = await _authAPI.signup(
-          usernameController.text,
-          //lastNameController.text,
-          emailController.text,
-          //phoneController.text,
-          passwordController.text,
-          widget.org);
+      var req = await _authAPI.signup(user);
       print(req.statusCode);
       if (req.statusCode == 201 || req.statusCode == 200) {
         // || req.statusCode == 409) {
@@ -88,7 +89,7 @@ class _UserRegisterPageState extends State<UserRegisterPage> {
               return;
             }
             Navigator.pushNamed(context, SplashPage.routeName,
-                arguments: ScreenArguments(token, widget.org));
+                arguments: ScreenArguments(token));
             const SnackBar(content: Text('Email succesfully registered.'));
           } else {
             const SnackBar(content: Text('Problem registering.'));

@@ -1,7 +1,8 @@
 //import 'dart:convert';
 import 'package:admin/pages/available_experts_dashboard.dart';
+import 'package:admin/pages/home_page.dart';
 import 'package:admin/pages/org_register_page.dart';
-import 'package:admin/pages/projects_page.dart';
+import 'package:admin/pages/admin_view.dart';
 import 'package:admin/pages/user_register_page.dart';
 import 'package:admin/utils/controllers/MenuAppController.dart';
 import 'package:flutter/material.dart';
@@ -16,7 +17,6 @@ import 'pages/login_page.dart';
 import 'utils/persistence/screen_arguments.dart';
 import 'pages/splash_page.dart';
 import 'dart:async';
-import 'pages/components/page_wrapper.dart';
 import 'package:firebase_core/firebase_core.dart';
 //import 'package:firebase_analytics/firebase_analytics.dart';
 // Import the generated file
@@ -63,8 +63,8 @@ class _ProNexusState extends State<ProNexus> {
         AvailableExpertsDashboard(token: args.token),
     //CallTrackerDashboard.routeName: (args) =>
     //CallTrackerDashboard(token: args.token),
-    UserRegisterPage.routeName: (args) => UserRegisterPage(org: args.token),
-    ProjectPage.routeName: (args) => ProjectPage(token: args.token),
+    UserRegisterPage.routeName: (args) => UserRegisterPage(token: args.token),
+    AdminPage.routeName: (args) => AdminPage(token: args.token),
   };
 
   Key key = UniqueKey();
