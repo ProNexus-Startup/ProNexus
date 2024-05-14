@@ -31,6 +31,9 @@ class TopMenu extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final GlobalBloc globalBloc =
+        Provider.of<GlobalBloc>(context, listen: false);
+
     return Container(
       color: Colors.blue[800],
       padding: const EdgeInsets.symmetric(horizontal: 10),
@@ -43,24 +46,25 @@ class TopMenu extends StatelessWidget {
               Navigator.pushNamed(
                 context,
                 HomePage.routeName,
-                arguments: ScreenArguments(token),
+                arguments: ScreenArguments(token!),
               );
             },
             child: const Text('Home', style: TextStyle(color: Colors.white)),
           ),
-          TextButton(
-            onPressed: () async {
-              // Retrieve token when needed and navigate
-              final token = await SecureStorage().read('token');
-              Navigator.pushNamed(
-                context,
-                AdminPage.routeName,
-                arguments: ScreenArguments(token),
-              );
-            },
-            child:
-                const Text('Admin view', style: TextStyle(color: Colors.white)),
-          ),
+          if (globalBloc.currentUser.admin)
+            TextButton(
+              onPressed: () async {
+                // Retrieve token when needed and navigate
+                final token = await SecureStorage().read('token');
+                Navigator.pushNamed(
+                  context,
+                  AdminPage.routeName,
+                  arguments: ScreenArguments(token!),
+                );
+              },
+              child: const Text('Admin view',
+                  style: TextStyle(color: Colors.white)),
+            ),
           const Spacer(), // Pushes following items to the right
           const Text('Chat with live support',
               style: TextStyle(color: Colors.white)),

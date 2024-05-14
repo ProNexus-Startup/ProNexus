@@ -1,7 +1,10 @@
 import 'dart:async';
 
 import 'package:admin/pages/admin_view.dart';
+import 'package:admin/pages/home_page.dart';
+import 'package:admin/utils/global_bloc.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../pages/login_page.dart'; // Ensure this path is correct
 import '../utils/persistence/secure_storage.dart';
 import '../utils/persistence/screen_arguments.dart'; // Ensure this is the correct import
@@ -45,16 +48,21 @@ class _SplashPageState extends State<SplashPage> {
     // Initialize SecureStorage
     SecureStorage secureStorage = SecureStorage();
     // Attempt to read the token from secure storage
-    String? token =
-        await secureStorage.read('token'); // read method might return null
+    String? token = await secureStorage.read('token');
+    final GlobalBloc globalBloc =
+        Provider.of<GlobalBloc>(context, listen: false);
 
-    // Check if the token is not null and not empty
-    if (token != 'No data found!' && token != null && token.isNotEmpty) {
-      // Using pushReplacementNamed to avoid going back to the SplashPage
-      Navigator.pushReplacementNamed(context, AdminPage.routeName,
-          arguments: ScreenArguments(token));
+    await globalBloc.onUserLogin(token!);
+
+    if (token != 'No data found!' && token.isNotEmpty) {
+      if (globalBloc.currentUser.admin) {
+        Navigator.pushReplacementNamed(context, AdminPage.routeName,
+            arguments: ScreenArguments(token));
+      } else {
+        Navigator.pushReplacementNamed(context, HomePage.routeName,
+            arguments: ScreenArguments(token));
+      }
     } else {
-      // Navigate to LoginPage if there's no token
       Navigator.pushReplacementNamed(context, LoginPage.routeName);
     }
   }

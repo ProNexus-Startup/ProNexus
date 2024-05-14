@@ -69,7 +69,6 @@ func (r *UserRepo) Update(userFields models.User) error {
 
     for i, user := range *r.users {
         if user.ID == userFields.ID {
-            // Check and update each field if it has a non-zero value
             if userFields.Email != "" {
                 (*r.users)[i].Email = userFields.Email
             }

@@ -1,120 +1,130 @@
 package mockdb
 
 import (
-    "github.com/rpupo63/ProNexus/backend/models"
     "errors"
     "github.com/google/uuid"
+    "github.com/rpupo63/ProNexus/backend/models"
 )
 
 type AvailableExpertRepo struct {
-    organizationIDToAvailableExpert *[]models.OrganizationIDAndAvailableExpert
+    experts *[]models.AvailableExpert
 }
 
-func NewAvailableExpertRepo(organizationIDToAvailableExpert *[]models.OrganizationIDAndAvailableExpert) *AvailableExpertRepo {
-    return &AvailableExpertRepo{organizationIDToAvailableExpert}
+func NewAvailableExpertRepo(experts *[]models.AvailableExpert) *AvailableExpertRepo {
+    return &AvailableExpertRepo{experts}
 }
 
-func (r *AvailableExpertRepo) SelectByOrganizationID(organizationID string) ([]models.AvailableExpert, error) {
-    for _, entry := range *r.organizationIDToAvailableExpert {
-        if entry.OrganizationID == organizationID {
-            return entry.AvailableExpert, nil
+func (r *AvailableExpertRepo) FindByOrganization(organizationID string) ([]models.AvailableExpert, error) {
+    var results []models.AvailableExpert
+    for _, expert := range *r.experts {
+        if expert.OrganizationID == organizationID {
+            results = append(results, expert)
         }
     }
-    return []models.AvailableExpert{}, nil
+    return results, nil
 }
 
-func (r *AvailableExpertRepo) SelectByProject(projectID string, organizationID string) ([]models.AvailableExpert, error) {
-    var filteredExperts []models.AvailableExpert
-    for _, entry := range *r.organizationIDToAvailableExpert {
-        if entry.OrganizationID == organizationID {
-            for _, expert := range entry.AvailableExpert {
-                if expert.ProjectID == projectID {
-                    filteredExperts = append(filteredExperts, expert)
-                }
-            }
-            break
+func (r *AvailableExpertRepo) FindByProject(projectID string, organizationID string) ([]models.AvailableExpert, error) {
+    var results []models.AvailableExpert
+    for _, expert := range *r.experts {
+        if expert.OrganizationID == organizationID && expert.ProjectID == projectID {
+            results = append(results, expert)
         }
     }
-    if len(filteredExperts) > 0 {
-        return filteredExperts, nil
-    }
-    return []models.AvailableExpert{}, nil
+    return results, nil
 }
 
-
-func (r *AvailableExpertRepo) Insert(organizationID string, availableExpert models.AvailableExpert) error {
-    if availableExpert.ID == "" {
+func (r *AvailableExpertRepo) Insert(expert models.AvailableExpert) error {
+    if expert.ID == "" {
         newUUID, err := uuid.NewUUID()
         if err != nil {
-            return err // Return an error if failed to generate UUID
+            return err
         }
-        availableExpert.ID = newUUID.String()
+        expert.ID = newUUID.String()
     }
-    
-    found := false
-    for i, entry := range *r.organizationIDToAvailableExpert {
-        if entry.OrganizationID == organizationID {
-            (*r.organizationIDToAvailableExpert)[i].AvailableExpert = append(entry.AvailableExpert, availableExpert)
-            found = true
-            break
-        }
-    }
-    if !found {
-        newOrganizationEntry := models.OrganizationIDAndAvailableExpert{
-            OrganizationID: organizationID,
-            AvailableExpert: []models.AvailableExpert{availableExpert},
-        }
-        *r.organizationIDToAvailableExpert = append(*r.organizationIDToAvailableExpert, newOrganizationEntry)
-    }
+    *r.experts = append(*r.experts, expert)
     return nil
 }
 
-func (r *AvailableExpertRepo) Delete(organizationID string, availableExpertID string) error {
-    for i, entry := range *r.organizationIDToAvailableExpert {
-        if entry.OrganizationID == organizationID {
-            for j, tracker := range entry.AvailableExpert {
-                if tracker.ID == availableExpertID {
-                    (*r.organizationIDToAvailableExpert)[i].AvailableExpert = append(entry.AvailableExpert[:j], entry.AvailableExpert[j+1:]...)
-                    return nil
-                }
-            }
-            return errors.New("expert tracker not found")
+func (r *AvailableExpertRepo) Delete(expertID string) error {
+    experts := *r.experts
+    for i, expert := range experts {
+        if expert.ID == expertID {
+            *r.experts = append(experts[:i], experts[i+1:]...)
+            return nil
         }
     }
-    return errors.New("organization not found")
+    return errors.New("expert not found")
 }
 
-
-func (r *AvailableExpertRepo) Update(organizationID string, updatedTracker models.AvailableExpert) error {
-    for i, entry := range *r.organizationIDToAvailableExpert {
-        if entry.OrganizationID == organizationID {
-            for j, tracker := range entry.AvailableExpert {
-                if tracker.ID == updatedTracker.ID {
-                    tracker.Name = updatedTracker.Name
-                    tracker.ProjectID = updatedTracker.ProjectID
-                    tracker.Favorite = updatedTracker.Favorite
-                    tracker.Title = updatedTracker.Title
-                    tracker.Company = updatedTracker.Company
-                    tracker.CompanyType = updatedTracker.CompanyType
-                    tracker.YearsAtCompany = updatedTracker.YearsAtCompany
-                    tracker.Description = updatedTracker.Description
-                    tracker.Geography = updatedTracker.Geography
-                    tracker.Angle = updatedTracker.Angle
-                    tracker.Status = updatedTracker.Status
-                    tracker.AIAssessment = updatedTracker.AIAssessment
-                    tracker.Comments = updatedTracker.Comments
-                    tracker.Availability = updatedTracker.Availability
-                    tracker.ExpertNetworkName = updatedTracker.ExpertNetworkName
-                    tracker.Cost = updatedTracker.Cost
-                    tracker.ScreeningQuestions = updatedTracker.ScreeningQuestions
-                    tracker.DateAddedExpert = updatedTracker.DateAddedExpert
-
-                    (*r.organizationIDToAvailableExpert)[i].AvailableExpert[j] = tracker
-                    return nil
-                }
+func (r *AvailableExpertRepo) Update(updatedExpert models.AvailableExpert) error {
+    experts := *r.experts
+    for i, expert := range experts {
+        if expert.ID == updatedExpert.ID {
+            // Update fields if they are not zero-values (default values)
+            if updatedExpert.Name != "" {
+                experts[i].Name = updatedExpert.Name
             }
-            return errors.New("expert not found")
+            if updatedExpert.OrganizationID != "" {
+                experts[i].OrganizationID = updatedExpert.OrganizationID
+            }
+            if updatedExpert.ProjectID != "" {
+                experts[i].ProjectID = updatedExpert.ProjectID
+            }
+            if updatedExpert.Title != "" {
+                experts[i].Title = updatedExpert.Title
+            }
+            if updatedExpert.Company != "" {
+                experts[i].Company = updatedExpert.Company
+            }
+            if updatedExpert.CompanyType != "" {
+                experts[i].CompanyType = updatedExpert.CompanyType
+            }
+            if updatedExpert.YearsAtCompany != "" {
+                experts[i].YearsAtCompany = updatedExpert.YearsAtCompany
+            }
+            if updatedExpert.Description != "" {
+                experts[i].Description = updatedExpert.Description
+            }
+            if updatedExpert.Geography != "" {
+                experts[i].Geography = updatedExpert.Geography
+            }
+            if updatedExpert.Angle != "" {
+                experts[i].Angle = updatedExpert.Angle
+            }
+            if updatedExpert.Status != "" {
+                experts[i].Status = updatedExpert.Status
+            }
+            if updatedExpert.AIAssessment != 0 {
+                experts[i].AIAssessment = updatedExpert.AIAssessment
+            }
+            if updatedExpert.Comments != "" {
+                experts[i].Comments = updatedExpert.Comments
+            }
+            if updatedExpert.Availability != "" {
+                experts[i].Availability = updatedExpert.Availability
+            }
+            if updatedExpert.ExpertNetworkName != "" {
+                experts[i].ExpertNetworkName = updatedExpert.ExpertNetworkName
+            }
+            if updatedExpert.Cost != 0 {
+                experts[i].Cost = updatedExpert.Cost
+            }
+            if updatedExpert.ScreeningQuestions != nil {
+                experts[i].ScreeningQuestions = updatedExpert.ScreeningQuestions
+            }
+            if updatedExpert.AddedExpertBy != "" {
+                experts[i].AddedExpertBy = updatedExpert.AddedExpertBy
+            }
+            if !updatedExpert.DateAddedExpert.IsZero() {
+                experts[i].DateAddedExpert = updatedExpert.DateAddedExpert
+            }
+            experts[i].Favorite = updatedExpert.Favorite // always update because it's a boolean
+
+            // Replace the record in the slice
+            (*r.experts)[i] = experts[i]
+            return nil
         }
     }
-    return errors.New("organization not found")
+    return errors.New("expert not found")
 }

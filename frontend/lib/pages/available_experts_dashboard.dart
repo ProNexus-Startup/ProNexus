@@ -5,6 +5,7 @@ import 'package:admin/responsive.dart';
 import 'package:admin/utils/models/available_expert.dart';
 import 'package:admin/utils/global_bloc.dart';
 import 'package:admin/utils/BaseAPI.dart';
+import 'package:admin/utils/persistence/secure_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../utils/constants.dart';
@@ -26,6 +27,18 @@ class _AvailableExpertsDashboardState extends State<AvailableExpertsDashboard> {
 
   bool isAnySelected = false;
 
+  @override
+  void initState() {
+    super.initState();
+    _loadData();
+  }
+
+  Future<void> _loadData() async {
+    final GlobalBloc globalBloc =
+        Provider.of<GlobalBloc>(context, listen: false);
+    globalBloc.onUserLogin(widget.token);
+  }
+
   // Update this based on checkbox changes
   void updateSelection(bool isSelected) {
     setState(() {
@@ -33,10 +46,137 @@ class _AvailableExpertsDashboardState extends State<AvailableExpertsDashboard> {
     });
   }
 
+  Future<void> _showAddExpertDialog(BuildContext context, String orgId) async {
+    SecureStorage secureStorage = SecureStorage();
+    String projectId = await secureStorage.read('projectId');
+
+    TextEditingController nameController = TextEditingController();
+    TextEditingController titleController = TextEditingController();
+    TextEditingController companyController = TextEditingController();
+    TextEditingController companyTypeController = TextEditingController();
+    TextEditingController yearsAtCompanyController = TextEditingController();
+    TextEditingController descriptionController = TextEditingController();
+    TextEditingController geographyController = TextEditingController();
+    TextEditingController angleController = TextEditingController();
+    TextEditingController statusController = TextEditingController();
+    TextEditingController commentsController = TextEditingController();
+    TextEditingController costController = TextEditingController();
+    List<String> screeningQuestions = [];
+    bool isSelected = false;
+    bool favorite = false;
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: Text('Add New Expert'),
+              content: SingleChildScrollView(
+                child: ListBody(
+                  children: <Widget>[
+                    TextField(
+                      controller: nameController,
+                      decoration: InputDecoration(hintText: "Name"),
+                    ),
+                    TextField(
+                      controller: titleController,
+                      decoration: InputDecoration(hintText: "Title"),
+                    ),
+                    TextField(
+                      controller: companyController,
+                      decoration: InputDecoration(hintText: "Company"),
+                    ),
+                    TextField(
+                      controller: companyTypeController,
+                      decoration: InputDecoration(hintText: "Company Type"),
+                    ),
+                    TextField(
+                      controller: yearsAtCompanyController,
+                      decoration: InputDecoration(hintText: "Years at Company"),
+                    ),
+                    TextField(
+                      controller: descriptionController,
+                      decoration: InputDecoration(hintText: "Description"),
+                    ),
+                    TextField(
+                      controller: geographyController,
+                      decoration: InputDecoration(hintText: "Geography"),
+                    ),
+                    TextField(
+                      controller: angleController,
+                      decoration: InputDecoration(hintText: "Angle"),
+                    ),
+                    TextField(
+                      controller: statusController,
+                      decoration: InputDecoration(hintText: "Status"),
+                    ),
+                    TextField(
+                      controller: commentsController,
+                      decoration: InputDecoration(hintText: "Comments"),
+                    ),
+                    TextField(
+                      controller: costController,
+                      keyboardType: TextInputType.number,
+                      decoration: InputDecoration(hintText: "Cost"),
+                    ),
+                    // Additional inputs like Switches or Checkboxes for isSelected, favorite, etc., can be added here if needed.
+                  ],
+                ),
+              ),
+              actions: <Widget>[
+                TextButton(
+                  child: Text('Cancel'),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+                TextButton(
+                  child: Text('Add'),
+                  onPressed: () {
+                    AvailableExpert newExpert = AvailableExpert(
+                      isSelected: isSelected,
+                      favorite: favorite,
+                      expertId:
+                          '', // This should be generated or handled elsewhere
+                      name: nameController.text,
+                      organizationId: orgId,
+                      projectId: projectId,
+                      title: titleController.text,
+                      company: companyController.text,
+                      companyType: companyTypeController.text,
+                      yearsAtCompany: yearsAtCompanyController.text,
+                      description: descriptionController.text,
+                      geography: geographyController.text,
+                      angle: angleController.text,
+                      status: statusController.text,
+                      AIAssessment: 0, // Set default or handle elsewhere
+                      comments: commentsController.text,
+                      availability:
+                          'Available', // Set default or provide a selection
+                      expertNetworkName: '', // Set or select
+                      cost: double.parse(costController.text),
+                      screeningQuestions: screeningQuestions,
+                      addedExpertBy: '', // Set or handle
+                      dateAddedExpert: DateTime.now(),
+                    );
+                    // Assuming there's a method to handle adding an expert
+                    _authAPI.makeExpert(newExpert, widget.token);
+                    _loadData();
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    final GlobalBloc globalBloc =
-        Provider.of<GlobalBloc>(context, listen: false);
+    final GlobalBloc globalBloc = Provider.of<GlobalBloc>(context);
 
     return Scaffold(
         appBar: PreferredSize(
@@ -72,7 +212,8 @@ class _AvailableExpertsDashboardState extends State<AvailableExpertsDashboard> {
                           // Adding the new ElevatedButton here
                           ElevatedButton(
                             onPressed: () {
-                              //_authAPI.postExpert(globalBloc, widget.token);
+                              _showAddExpertDialog(context,
+                                  globalBloc.currentUser.organizationId);
                             },
                             child: Text('Add Expert'), // Button text
                           ),
@@ -261,7 +402,7 @@ class _ExpertTableState extends State<ExpertTable> {
         DataCell(Text(expert.angle)),
         DataCell(Text(expert.status)),
         DataCell(Text('${expert.AIAssessment}')),
-        DataCell(Text(expert.comments ?? '')),
+        DataCell(Text(expert.comments)),
         DataCell(Text(expert.availability)),
       ],
     );

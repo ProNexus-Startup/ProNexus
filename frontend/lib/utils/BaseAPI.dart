@@ -22,6 +22,7 @@ class BaseAPI {
   Uri makeProjectPath = Uri.parse("$api/make-project");
   Uri projectsPath = Uri.parse("$api/projects-list");
   Uri callsPath = Uri.parse("$api/calls-list");
+  Uri updateUserProjectPath = Uri.parse("$api/update-user-project");
 
   Map<String, String> headers = {
     "Content-Type": "application/json; charset=UTF-8"
@@ -43,7 +44,6 @@ class AuthAPI extends BaseAPI {
   }
 
   Future<http.Response> makeOrg(String orgName) async {
-    print(orgName);
     var body = jsonEncode({'name': orgName});
     var headers = {
       'Content-Type': 'application/json',
@@ -123,35 +123,31 @@ class AuthAPI extends BaseAPI {
   Future<List<AvailableExpert>> getExperts(String token) async {
     try {
       final response = await http
-          .get(expertsPath, // Updated path to include query for organizationID
-              headers: {"Authorization": "Bearer ${token}"});
-
+          .get(expertsPath, headers: {"Authorization": "Bearer ${token}"});
       if (response.statusCode == 200) {
-        // Decode the JSON response
         var decoded = json.decode(response.body);
+
         List<AvailableExpert> experts = List.from(decoded)
             .map((expertJson) => AvailableExpert.fromJson(expertJson))
             .toList();
 
         return experts;
       } else {
-        // Log or handle the error response properly
         print(
             "Failed to retrieve experts. Status code: ${response.statusCode}");
-        return []; // Return an empty list indicating no experts found or an error occurred
+        print("Failure: ${response.body}");
+        return [];
       }
     } catch (e) {
-      // Log the exception
       print("Error occurred while fetching experts: $e");
-      return []; // Return an empty list as a fallback in case of exceptions
+      return [];
     }
   }
 
   Future<List<CallTracker>> getCalls(String token) async {
     try {
       final response = await http
-          .get(callsPath, // Updated path to include query for organizationID
-              headers: {"Authorization": "Bearer ${token}"});
+          .get(callsPath, headers: {"Authorization": "Bearer ${token}"});
       if (response.statusCode == 200) {
         var decoded = json.decode(response.body);
 
@@ -168,15 +164,14 @@ class AuthAPI extends BaseAPI {
     } catch (e) {
       // Log the exception
       print("Error occurred while fetching calls: $e");
-      return []; // Return an empty list as a fallback in case of exceptions
+      return [];
     }
   }
 
   Future<List<Project>> getProjects(String token) async {
     try {
       final response = await http
-          .get(projectsPath, // Updated path to include query for organizationID
-              headers: {"Authorization": "Bearer ${token}"});
+          .get(projectsPath, headers: {"Authorization": "Bearer ${token}"});
       if (response.statusCode == 200) {
         var decoded = json.decode(response.body);
 
@@ -186,147 +181,149 @@ class AuthAPI extends BaseAPI {
 
         return projects;
       } else {
-        // Log or handle the error response properly
         print(
             "Failed to retrieve projects. Status code: ${response.statusCode}");
+        print("Failure: ${response.body}");
         return [];
       }
     } catch (e) {
-      // Log the exception
       print("Error occurred while fetching projects: $e");
-      return []; // Return an empty list as a fallback in case of exceptions
+      return [];
     }
   }
 
-  Future<void> postExpert(String token, AvailableExpert expert) async {
-    final response = await http.post(
-      makeExpertPath,
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ${token}',
-      },
-      body: jsonEncode({
-        "expertId": "123",
-        "name": "John Doe",
-        "project": "Project 1",
-        "favorite": false,
-        "title": "Senior Engineer",
-        "company": "Tech Solutions",
-        "yearsAtCompany": "5",
-        "description": "Expert in renewable energy systems",
-        "geography": "USA",
-        "angle": "Technical",
-        "status": "Active",
-        "AIAssessment": 85,
-        "comments": "Highly recommended for technical insights",
-        "availability": "Monday to Friday",
-        "expertNetworkName": "Global Tech Leaders",
-        "cost": 200.0,
-        "screeningQuestions": [
-          "What is your experience with renewable energy?",
-          "Can you provide examples of projects you've led?"
-        ],
-      }),
-    );
-
-    if (response.statusCode == 200) {
-      // Handle the response body if the call was successful
-      print('Success: ${response.body}');
-    } else {
-      // Handle the error
-      print(
-          'Failed to post available expert. StatusCode: ${response.statusCode}');
-    }
-  }
-
-  Future<void> makeCall(String token, CallTracker callTracker) async {
-    // Encode the callTracker data into JSON
-    var body = jsonEncode({
-      'organizationID': callTracker.organizationID,
-      'callTracker': callTracker.callTracker
-          .map((ct) => {
-                'expertId': ct.ID,
-                'name': ct.Name,
-                'projectId': ct.ProjectID,
-                'favorite': ct.Favorite,
-                'title': ct.Title,
-                'company': ct.Company,
-                'companyType': ct.CompanyType,
-                'yearsAtCompany': ct.YearsAtCompany,
-                'description': ct.Description,
-                'geography': ct.Geography,
-                'angle': ct.Angle,
-                'status': ct.Status,
-                'AIAssessment': ct.AIAssessment,
-                'comments': ct.Comments,
-                'availability': ct.Availability,
-                'expertNetworkName': ct.ExpertNetworkName,
-                'cost': ct.Cost,
-                'screeningQuestions': ct.ScreeningQuestions,
-                'addedExpertBy': ct.AddedExpertBy,
-                'dateAddedExpert': ct.DateAddedExpert.toIso8601String(),
-                'addedCallBy': ct.AddedCallBy,
-                'dateAddedCall': ct.DateAddedCall.toIso8601String(),
-                'inviteSent': ct.InviteSent,
-                'meetingStartDate': ct.MeetingStartDate.toIso8601String(),
-                'meetingEndDate': ct.MeetingEndDate.toIso8601String(),
-                'paidStatus': ct.PaidStatus,
-                'rating': ct.Rating,
-              })
-          .toList()
-    });
-
+// Function to make an expert available
+  Future<void> makeExpert(AvailableExpert availableExpert, String token) async {
     try {
-      // Set up the request headers
-      var headers = {
+      // Convert the AvailableExpert object to a JSON string
+      String expertData = jsonEncode(availableExpert.toJson());
+
+      // Set up the headers
+      Map<String, String> headers = {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $token',
       };
 
-      // Send the POST request
-      var response =
-          await http.post(makeCallPath, headers: headers, body: body);
+      // Make the POST request
+      http.Response response = await http.post(
+        makeExpertPath,
+        headers: headers,
+        body: expertData,
+      );
 
       // Check the response status
       if (response.statusCode == 200) {
-        print('Call tracker created successfully.');
+        print("Expert made available successfully.");
       } else {
-        print(
-            'Failed to create call tracker. Status code: ${response.statusCode}');
-        print('Response body: ${response.body}');
+        print("Failed to make expert available: ${response.body}");
+      }
+    } catch (e) {
+      print("Error making expert available: $e");
+    }
+  }
+
+  Future<void> createCallTracker(CallTracker callTracker, String token) async {
+    try {
+      final response = await http.post(
+        makeCallPath,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token', // Ensure you have a valid token
+        },
+        body: jsonEncode({
+          'isSelected': callTracker.isSelected,
+          'expertId': callTracker.expertId,
+          'name': callTracker.name,
+          'projectId': callTracker.projectId,
+          'favorite': callTracker.favorite,
+          'title': callTracker.title,
+          'company': callTracker.company,
+          'companyType': callTracker.companyType,
+          'yearsAtCompany': callTracker.yearsAtCompany,
+          'description': callTracker.description,
+          'geography': callTracker.geography,
+          'angle': callTracker.angle,
+          'status': callTracker.status,
+          'AIAssessment': callTracker.AIAssessment,
+          'comments': callTracker.comments,
+          'availability': callTracker.availability,
+          'expertNetworkName': callTracker.expertNetworkName,
+          'cost': callTracker.cost,
+          'screeningQuestions': callTracker.screeningQuestions,
+          'addedExpertBy': callTracker.addedExpertBy,
+          'dateAddedExpert': callTracker.dateAddedExpert.toIso8601String(),
+          'addedCallBy': callTracker.addedCallBy,
+          'dateAddedCall': callTracker.dateAddedCall.toIso8601String(),
+          'inviteSent': callTracker.inviteSent,
+          'meetingStartDate': callTracker.meetingStartDate.toIso8601String(),
+          'meetingEndDate': callTracker.meetingEndDate.toIso8601String(),
+          'paidStatus': callTracker.paidStatus,
+          'rating': callTracker.rating,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        print('Call Tracker Created Successfully');
+      } else {
+        print('Failed to create call tracker: ${response.body}');
       }
     } catch (e) {
       print('Error occurred while sending request: $e');
     }
   }
 
-  Future<void> postProject(String token, String name, DateTime startDate,
-      String target, String status) async {
-    final response = await http.post(
-      makeProjectPath,
-      headers: {
-        'Content-Type': 'application/json; charset=UTF-8',
-        'Authorization': 'Bearer ${token}',
-      },
-      body: jsonEncode({
-        'projectId': '', // This is a unique identifier for the project
-        'name': name, // Name of the project
-        'startDate': startDate
-            .toUtc()
-            .toIso8601String(), //startDate, // Start date in ISO 8601 format
-        'target': target, // The target goal of the project
-        'callsCompleted':
-            0, // Number of calls or actions completed towards the project
-        'status': status, // The current status of the project
-      }),
-    );
+  Future<void> makeProject(String token, Project project) async {
+    try {
+      var response = await http.post(
+        makeProjectPath,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode(project.toJson()),
+      );
+      if (response.statusCode == 200) {
+        print('Project created successfully');
+      } else {
+        throw Exception('Failed to create project: ${response.body}');
+      }
+    } catch (e) {
+      print('Error creating project: $e');
+    }
+  }
 
-    if (response.statusCode == 200) {
-      // Handle the response body if the call was successful
-      print('Success: ${response.body}');
-    } else {
-      // Handle the error
-      print('Failed to post project. StatusCode: ${response.statusCode}');
+  Future<void> changeProjects(
+      String token, String project, DateTime dateOnboarded) async {
+    try {
+      // Encode the request body
+      var body = jsonEncode({
+        'newProject': project,
+        'dateOnboarded':
+            dateOnboarded.toIso8601String().replaceFirst(RegExp(r'\.\d+'), '') +
+                'Z',
+      });
+
+      // Set up headers
+      Map<String, String> headers = {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      };
+
+      // Make the POST request
+      var response = await http.post(
+        updateUserProjectPath,
+        headers: headers,
+        body: body,
+      );
+
+      // Check the response status and body
+      if (response.statusCode == 200) {
+        print('Successfully changed projects: ${response.body}');
+      } else {
+        print('Failed to change projects: ${response.body}');
+      }
+    } catch (e) {
+      print('An error occurred: $e');
     }
   }
 

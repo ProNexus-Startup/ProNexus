@@ -19,7 +19,7 @@ func newAccess(user models.User) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, accessClaims{
 		User: user,
 		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(7 * 24 * time.Hour)), // 7 days
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(7 * 24 * time.Hour)),
 		},
 	})
 

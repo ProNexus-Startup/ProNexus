@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"strings"
 	"github.com/google/uuid"
+    "github.com/rpupo63/ProNexus/backend/errs"
 )
 
 type availableExpertHandler struct {
@@ -29,7 +30,6 @@ func newAvailableExpertHandler(availableExpertRepo database.AvailableExpertRepo,
         userRepo:            userRepo,
 	}
 }
-
 
 func (h availableExpertHandler) makeAvailableExpert() http.HandlerFunc {
     return func(w http.ResponseWriter, r *http.Request) {
@@ -76,10 +76,9 @@ func (h availableExpertHandler) makeAvailableExpert() http.HandlerFunc {
         }
 
         availableExpert.ID = uuid.NewString()
-        availableExpert.ProjectID = user.ProjectID
 
         // Inserting the available expert into the repository
-        if err := h.availableExpertRepo.Insert(user.OrganizationID, availableExpert); err != nil {
+        if err := h.availableExpertRepo.Insert(availableExpert); err != nil {
             h.responder.writeError(w, fmt.Errorf("Error inserting available expert: %v", err))
             return
         }
@@ -99,7 +98,7 @@ func (h availableExpertHandler) deleteAvailableExpert() http.HandlerFunc {
         token = strings.TrimPrefix(token, "Bearer ")
 
         // postENow passing the token and the tokenSecret to validateToken
-        user, err := validateToken(token)
+        _, err := validateToken(token)
         if err != nil {
             h.responder.writeError(w, fmt.Errorf("invalid token: %v", err))
             return
@@ -111,7 +110,7 @@ func (h availableExpertHandler) deleteAvailableExpert() http.HandlerFunc {
 			return
 		}
 
-		if err := h.availableExpertRepo.Delete(user.OrganizationID, availableExpertID); err != nil {
+		if err := h.availableExpertRepo.Delete(availableExpertID); err != nil {
 			h.responder.writeError(w, fmt.Errorf("error deleting available expert: %v", err))
 			return
 		}
@@ -138,15 +137,15 @@ func (h availableExpertHandler) getAllAvailableExperts() http.HandlerFunc {
             return
         }
         
-        var availableExperts []models.AvailableExpert
-        availableExperts, err = h.availableExpertRepo.SelectByOrganizationID(user.OrganizationID)
+        var experts []models.AvailableExpert
+        experts, err = h.availableExpertRepo.FindByOrganization(user.OrganizationID)
 
         if err != nil {
-            h.responder.writeError(w, fmt.Errorf("error fetching available expert: %v", err))
+            h.responder.writeError(w, fmt.Errorf("error fetching expert: %v", err))
             return
         }
 
-        h.responder.writeJSON(w, availableExperts)
+        h.responder.writeJSON(w, experts)
     }
 }
 
@@ -188,7 +187,7 @@ func (h availableExpertHandler) getExpertsByUserEmail() http.HandlerFunc {
         log.Printf("User found: %s", user.Email)
 
         var availableExperts []models.AvailableExpert
-        availableExperts, err = h.availableExpertRepo.SelectByProject(user.ProjectID, user.OrganizationID)
+        availableExperts, err = h.availableExpertRepo.FindByProject(user.ProjectID, user.OrganizationID)
 
         if err != nil {
             h.responder.writeError(w, fmt.Errorf("error fetching available expert: %v", err))
@@ -196,5 +195,61 @@ func (h availableExpertHandler) getExpertsByUserEmail() http.HandlerFunc {
         }
 
         h.responder.writeJSON(w, availableExperts)
+    }
+}
+
+func (h availableExpertHandler) manuallyMakeAvailableExpert() http.HandlerFunc {
+    return func(w http.ResponseWriter, r *http.Request) {
+        token := r.Header.Get("Authorization")
+        if token == "" {
+            h.responder.writeError(w, fmt.Errorf("no Authorization header provided"))
+            return
+        }
+
+        token = strings.TrimPrefix(token, "Bearer ")
+
+        // Now passing the token and the tokenSecret to validateToken
+        _, err := validateToken(token)
+        if err != nil {
+            h.responder.writeError(w, fmt.Errorf("invalid token: %v", err))
+            return
+        }
+        
+        var newExpertRequest struct {
+            models.AvailableExpert
+        }   
+
+        if err := json.NewDecoder(r.Body).Decode(&newExpertRequest); err != nil {
+            h.responder.writeError(w, errs.Malformed("request body"))
+            return
+        }
+
+        if newExpertRequest.Name == "" || newExpertRequest.OrganizationID == "" {
+            h.responder.writeError(w, errs.BadRequest("name and organizationid are required"))
+            return
+        }
+
+        /*if newProjectRequest.OrganizationID != "" {
+            _, err := h.organizationRepo.FindByID(newUserRequest.OrganizationID)
+            if err != nil {
+                h.responder.writeError(w, errs.NewNotFound("organization"))
+                return
+            }
+        }*/
+
+        newExpert := newExpertRequest.AvailableExpert
+        newExpert.ID = uuid.NewString()
+        newExpert.OrganizationID = string(newExpertRequest.OrganizationID)
+
+        if err := h.availableExpertRepo.Insert(newExpert); err != nil {
+            h.responder.writeError(w, fmt.Errorf("error creating new expert: %v", err))
+            return
+        }
+
+        // Respond with JWT token
+        h.responder.writeJSON(w, map[string]string{
+            "status": "success",
+            "message": "expert created successfully",
+        })
     }
 }

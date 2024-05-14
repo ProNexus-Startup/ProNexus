@@ -38,6 +38,7 @@ class GlobalBloc with ChangeNotifier {
   // Method to set the projectIdFilter
   void setProjectIdFilter(String value) {
     projectIdFilter = value;
+    print(value);
     notifyListeners();
   }
 
@@ -69,11 +70,13 @@ class GlobalBloc with ChangeNotifier {
     expertList = [];
     callList = [];
     projectList = [];
+    userProjectList = [];
     userList = [];
     currentUser = User.defaultUser();
   }
 
   late List<Project> projectList;
+  late List<Project> userProjectList;
   late List<User> userList;
   late List<AvailableExpert> expertList;
   late List<CallTracker> callList;
@@ -82,6 +85,7 @@ class GlobalBloc with ChangeNotifier {
   List<AvailableExpert> get expertListStream => expertList;
   List<CallTracker> get callListStream => callList;
   List<Project> get projectListStream => projectList;
+  List<Project> get userProjectListStream => userProjectList;
   List<User> get userListStream => userList;
 
   Future<void> onUserLogin(String token) async {
@@ -90,7 +94,13 @@ class GlobalBloc with ChangeNotifier {
     // Fetching data from the API
     List<AvailableExpert> fetchedExperts = await _authAPI.getExperts(token);
     List<CallTracker> fetchedCalls = await _authAPI.getCalls(token);
-    List<Project> fetchedProjects = await _authAPI.getProjects(token);
+    try {
+      List<Project> fetchedProjects = await _authAPI.getProjects(token);
+      this.projectList = fetchedProjects;
+    } catch (e) {
+      // Handle the error, e.g., show an error message
+      print('Error fetching projects: $e');
+    }
     List<User> fetchedUsers = await _authAPI.getUsers(token);
 
     // Apply filtering based on the projectId
@@ -106,11 +116,19 @@ class GlobalBloc with ChangeNotifier {
     // Assigning filtered lists to the global state
     this.expertList = fetchedExperts;
     this.callList = fetchedCalls;
-    this.projectList = fetchedProjects;
     this.userList = fetchedUsers;
 
     User user = await _authAPI.getUser(token);
+    print(user.pastProjectIDs);
+    print("Stuff here");
     this.currentUser = user;
+
+    List<String> idsToFilter = user.pastProjectIDs ?? [];
+    List<Project> filteredProjects = projectList
+        .where((project) => idsToFilter.contains(project.projectId))
+        .toList();
+
+    this.userProjectList = filteredProjects;
 
     notifyListeners();
   }
@@ -162,6 +180,14 @@ class GlobalBloc with ChangeNotifier {
     int index = expertList.indexOf(expert);
     if (index != -1) {
       expertList[index].favorite = !(expertList[index].favorite);
+      notifyListeners();
+    }
+  }
+
+  void toggleScheduled(CallTracker call) {
+    int index = callList.indexOf(call);
+    if (index != -1) {
+      callList[index].favorite = !(callList[index].favorite);
       notifyListeners();
     }
   }

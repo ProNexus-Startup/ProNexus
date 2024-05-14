@@ -25,28 +25,33 @@ import 'firebase_options.dart';
 int id = 0;
 
 Future<void> main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
-  runApp(
-    MultiProvider(
-      providers: [
-        BlocProvider<UserCubit>(
-          create: (context) => UserCubit(User.defaultUser()),
-        ),
-        ChangeNotifierProvider(
-          create: (context) => MenuAppController(),
-        ),
-        ChangeNotifierProvider(
-          create: (context) => GlobalBloc(),
-        ),
+  runZonedGuarded(() async {
+    WidgetsFlutterBinding.ensureInitialized();
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
 
-        // Add other providers if necessary
-      ],
-      child: const ProNexus(),
-    ),
-  );
+    runApp(
+      MultiProvider(
+        providers: [
+          BlocProvider<UserCubit>(
+            create: (context) => UserCubit(User.defaultUser()),
+          ),
+          ChangeNotifierProvider(
+            create: (context) => MenuAppController(),
+          ),
+          ChangeNotifierProvider(
+            create: (context) => GlobalBloc(),
+          ),
+          // Add other providers if necessary
+        ],
+        child: const ProNexus(),
+      ),
+    );
+  }, (error, stack) {
+    print('Caught Flutter error in my root zone: $error');
+    print(stack);
+  });
 }
 
 class ProNexus extends StatefulWidget {

@@ -72,7 +72,7 @@ func (h callTrackerHandler) makeCallTracker() http.HandlerFunc {
             return
         }
 
-        if err := h.callTrackerRepo.Insert(user.OrganizationID, callTracker); err != nil {
+        if err := h.callTrackerRepo.Insert(callTracker); err != nil {
             h.responder.writeError(w, fmt.Errorf("Error inserting call tracker: %v", err))
             return
         }
@@ -93,7 +93,7 @@ func (h callTrackerHandler) deleteCallTracker() http.HandlerFunc {
         token = strings.TrimPrefix(token, "Bearer ")
 
         // Now passing the token and the tokenSecret to validateToken
-        user, err := validateToken(token)
+        _, err := validateToken(token)
         if err != nil {
             h.responder.writeError(w, fmt.Errorf("invalid token: %v", err))
             return
@@ -105,7 +105,7 @@ func (h callTrackerHandler) deleteCallTracker() http.HandlerFunc {
 			return
 		}
 
-		if err := h.callTrackerRepo.Delete(user.OrganizationID, callTrackerID); err != nil {
+		if err := h.callTrackerRepo.Delete(callTrackerID); err != nil {
 			h.responder.writeError(w, fmt.Errorf("error deleting tracked call: %v", err))
 			return
 		}
@@ -132,7 +132,7 @@ func (h callTrackerHandler) getAllCallTrackers() http.HandlerFunc {
         }
         
         var callTrackers []models.CallTracker
-        callTrackers, err = h.callTrackerRepo.SelectByOrganizationID(user.OrganizationID)
+        callTrackers, err = h.callTrackerRepo.FindByOrganization(user.OrganizationID)
 
         if err != nil {
             h.responder.writeError(w, fmt.Errorf("error fetching call trackers: %v", err))
@@ -145,7 +145,6 @@ func (h callTrackerHandler) getAllCallTrackers() http.HandlerFunc {
 
 func (h callTrackerHandler) manuallyMakeCallTracker() http.HandlerFunc {
     return func(w http.ResponseWriter, r *http.Request) {
-        // Extracting the email from the Authorization header
         authHeader := r.Header.Get("Authorization")
         if authHeader == "" {
             h.responder.writeError(w, fmt.Errorf("No authorization header provided"))
@@ -160,7 +159,7 @@ func (h callTrackerHandler) manuallyMakeCallTracker() http.HandlerFunc {
 
         token := strings.TrimPrefix(authHeader, "Bearer ")
 
-        user, err := h.userRepo.FindByToken(email)
+        user, err := h.userRepo.FindByToken(token)
         if err != nil {
             h.responder.writeError(w, fmt.Errorf("Error retrieving user: %v", err))
             return
@@ -173,7 +172,7 @@ func (h callTrackerHandler) manuallyMakeCallTracker() http.HandlerFunc {
             return
         }
 
-        if err := h.callTrackerRepo.Insert(user.OrganizationID, callTracker); err != nil {
+        if err := h.callTrackerRepo.Insert(callTracker); err != nil {
             h.responder.writeError(w, fmt.Errorf("Error inserting call tracker: %v", err))
             return
         }

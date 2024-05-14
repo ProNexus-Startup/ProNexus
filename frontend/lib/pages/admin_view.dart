@@ -4,6 +4,7 @@ import 'package:admin/utils/models/project.dart';
 import 'package:admin/utils/BaseAPI.dart';
 import 'package:admin/utils/global_bloc.dart';
 import 'package:admin/utils/models/user.dart';
+import 'package:admin/utils/persistence/secure_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -33,9 +34,7 @@ class _AdminPageState extends State<AdminPage> {
     globalBloc.onUserLogin(widget.token);
   }
 
-  void _showAddProjectDialog(
-    BuildContext context,
-  ) {
+  void _showAddProjectDialog(BuildContext context, organizationId) {
     TextEditingController projectNameController = TextEditingController();
     DateTime? startDate; // Changed to DateTime to store date object
     TextEditingController targetController = TextEditingController();
@@ -128,13 +127,14 @@ class _AdminPageState extends State<AdminPage> {
                 TextButton(
                   child: Text('Add'),
                   onPressed: () {
-                    _authAPI.postProject(
-                      widget.token,
-                      projectNameController.text,
-                      startDate!,
-                      targetController.text,
-                      selectedStatus.toString(),
-                    );
+                    Project project = Project(
+                        name: projectNameController.text,
+                        startDate: startDate!,
+                        organizationId: organizationId,
+                        target: targetController.text,
+                        callsCompleted: 0,
+                        status: selectedStatus.toString());
+                    _authAPI.makeProject(widget.token, project);
                     _loadData();
                     Navigator.of(context).pop();
                   },
@@ -194,14 +194,15 @@ class _AdminPageState extends State<AdminPage> {
                 ),
                 TextButton(
                   child: Text('Add'),
-                  onPressed: () {
+                  onPressed: () async {
                     User user = User(
                         admin: isAdmin,
                         email: emailController.text,
                         fullName: fullNameController.text,
                         password: passwordController.text,
                         organizationId: orgId);
-                    _authAPI.signup(user);
+                    var response = await _authAPI.signup(user);
+                    print(response);
                     _loadData();
                     Navigator.of(context).pop();
                   },
@@ -278,7 +279,10 @@ class _AdminPageState extends State<AdminPage> {
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       floatingActionButton: _isSelected[1]
           ? ElevatedButton(
-              onPressed: () => _showAddProjectDialog(context),
+              onPressed: () {
+                _showAddProjectDialog(
+                    context, globalBloc.currentUser.organizationId);
+              },
               style: ElevatedButton.styleFrom(
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
@@ -331,16 +335,18 @@ class ProjectView extends StatelessWidget {
           rows: projectList.map((project) {
             return DataRow(
               cells: [
-                DataCell(Text(project.projectId)),
+                DataCell(Text(project.projectId ?? "Missing ID")),
                 DataCell(Text(project.name)),
                 DataCell(Text(project.callsCompleted.toString())),
-                DataCell(Text(project.target ?? '')),
+                DataCell(Text(project.target)),
                 DataCell(Text(project.startDate.toString())),
                 DataCell(Text(project.endDate.toString())),
               ],
-              onSelectChanged: (bool? selected) {
+              onSelectChanged: (bool? selected) async {
+                SecureStorage secureStorage = SecureStorage();
                 if (selected != null && selected) {
-                  globalBloc.setProjectIdFilter(project.projectId);
+                  globalBloc.setProjectIdFilter(project.projectId!);
+                  await secureStorage.write('projectId', project.projectId!);
 
                   Navigator.of(context).push(
                     MaterialPageRoute(

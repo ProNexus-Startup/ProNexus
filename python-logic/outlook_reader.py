@@ -228,8 +228,7 @@ def make_dict_by_statement(email_content):
 #endregion
 
 #region Get Information for backend
-def get_expert_info(email):
-    email_body = email.get_payload(decode=True)
+def get_expert_info(email_body):
     message = expert_template + str(email_body)
     
     try:
@@ -297,12 +296,12 @@ def get_call_info(email, user_email):
 
 #region Backend Interaction
 def send_to_backend(data, token, id, path, company=None):
-    headers = {
+    backend_headers = {
         'Content-Type': 'application/json',
         'Authorization': f'Bearer {token}',
     },
     payload = json.dumps(data)
-    response = requests.post(f'{BACKEND_URL}/{path}', headers=headers, data=payload)
+    response = requests.post(f'{BACKEND_URL}/{path}', headers=backend_headers, data=data)
     if response.status_code == 200:
         print("Expert added successfully!")
         mark_email_read(id)
@@ -311,12 +310,12 @@ def send_to_backend(data, token, id, path, company=None):
         print(f"Response: {response.text}")
 
 def get_from_backend(user_email, path):
-    headers = {
+    backend_headers = {
         'Content-Type': 'application/json',
         'Authorization': f'Bearer {BACKEND_PASSWORD+user_email}',
     },
     url = f'{BACKEND_URL}/{path}'
-    response = requests.get(url, headers=headers)
+    response = requests.get(url, headers=backend_headers)
     if response.status_code == 200:
         experts = json.loads(response.body)
         return experts
@@ -351,7 +350,7 @@ def mark_email_read(id):
 def route_data(email):    
     body = email['body']
     sender = email['from']
-    if sender is None or sender.find('@'):
+    if sender is None or sender.find('@') == -1:
         print("missing sender")
         return
     if body is None:
@@ -387,6 +386,7 @@ def primary_func(backend_password: str):
     for email in email_list:
         text = transform_to_text(email['body']['content'])
         header_split = split_emails_by_header(text)
+        sender = email['sender']['emailAddress']['address']
 
         for splita in header_split:
             statement_split = split_emails_by_statement(splita)
@@ -408,7 +408,7 @@ def primary_func(backend_password: str):
                     if call_info:
                         send_to_backend(
                             data=call_info,
-                            token=backend_password + email['from'],
+                            token=backend_password + sender,
                             path='make-call'
                         )
 
@@ -417,13 +417,13 @@ def primary_func(backend_password: str):
 
                 elif route in [info['company'] for info in company_info.values()]:
                     print(route)
-                    expert_data = get_expert_info(email=email_dict)
+                    expert_data = get_expert_info(email=email_dict['body'])
                     if expert_data != "No Expert Found":
                         for expert in expert_data:
                             send_to_backend(
                                 data=expert,
                                 company=route,
-                                token=backend_password + email_data['sender']['address'],
+                                token=backend_password + sender,
                                 id=email['id'],
                                 path="make-expert"
                             )

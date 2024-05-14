@@ -1,40 +1,41 @@
 class CallTracker {
   bool isSelected = false;
   bool favorite = false;
-  final String
-      expertId; // Adjusted to be consistent with the backend model field name `ID`
+  final String expertId;
   String name;
   String projectId;
+  String organizationId; // Added to match the Go model
   String title;
   String company;
   String companyType;
-  int yearsAtCompany; // Changed from String to int
+  int yearsAtCompany;
   String description;
   String geography;
   String angle;
   String status;
-  String AIAssessment; // Changed from `int?` to `String` to match the backend
+  String AIAssessment;
   String comments;
   String availability;
   String expertNetworkName;
-  double cost;
+  double cost; // Keep as double, equivalent to float64 in Go
   List<String> screeningQuestions;
   String addedExpertBy;
   DateTime dateAddedExpert;
   String addedCallBy;
   DateTime dateAddedCall;
-  bool inviteSent = false; // Default value adjusted to non-nullable
+  bool inviteSent = false;
   DateTime meetingStartDate;
   DateTime meetingEndDate;
   bool paidStatus;
-  int rating;
+  int? rating;
 
   CallTracker({
-    this.isSelected = false, // Default provided in constructor
+    this.isSelected = false,
     required this.expertId,
     required this.name,
     required this.projectId,
-    this.favorite = false, // Default provided in constructor
+    this.favorite = false,
+    required this.organizationId, // Ensure this is initialized
     required this.title,
     required this.company,
     required this.companyType,
@@ -53,11 +54,11 @@ class CallTracker {
     required this.dateAddedExpert,
     required this.addedCallBy,
     required this.dateAddedCall,
-    this.inviteSent = false, // Default provided in constructor
+    this.inviteSent = false,
     required this.meetingStartDate,
     required this.meetingEndDate,
     required this.paidStatus,
-    required this.rating,
+    this.rating,
   });
 
   factory CallTracker.fromJson(Map<String, dynamic> json) {
@@ -67,10 +68,11 @@ class CallTracker {
       name: json['name'],
       projectId: json['projectId'],
       favorite: json['favorite'] ?? false,
+      organizationId: json['organizationId'], // Added
       title: json['title'],
       company: json['company'],
       companyType: json['companyType'],
-      yearsAtCompany: json['yearsAtCompany'] as int, // Handle casting
+      yearsAtCompany: json['yearsAtCompany'] as int,
       description: json['description'],
       geography: json['geography'],
       angle: json['angle'],
@@ -79,14 +81,14 @@ class CallTracker {
       comments: json['comments'],
       availability: json['availability'],
       expertNetworkName: json['expertNetworkName'],
-      cost: json['cost'].toDouble(), // Ensure casting to double
+      cost: json['cost'].toDouble(),
       screeningQuestions: List<String>.from(
           json['screeningQuestions'].map((x) => x.toString())),
       addedExpertBy: json['addedExpertBy'],
       dateAddedExpert: DateTime.parse(json['dateAddedExpert']),
       addedCallBy: json['addedCallBy'],
       dateAddedCall: DateTime.parse(json['dateAddedCall']),
-      inviteSent: json['inviteSent'],
+      inviteSent: json['inviteSent'] ?? false,
       meetingStartDate: DateTime.parse(json['meetingStartDate']),
       meetingEndDate: DateTime.parse(json['meetingEndDate']),
       paidStatus: json['paidStatus'],

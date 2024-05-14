@@ -5,7 +5,7 @@ import (
 )
 
 type ProjectRepo interface {
-    SelectByOrganizationID(organizationID string) ([]models.Project, error)
-    Insert(organizationID string, entry models.Project) error
-    Delete(organizationID string, projectID string) error
+    FindByOrganization(organizationID string) ([]models.Project, error)
+    Insert(entry models.Project) error
+    Delete(projectID string) error
 }

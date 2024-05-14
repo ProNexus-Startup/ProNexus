@@ -1,9 +1,10 @@
 class AvailableExpert {
-  bool isSelected = false; // Default to false instead of being nullable
-  bool favorite = false; // Default to false
+  bool isSelected = false;
+  bool favorite = false;
 
   final String expertId;
   String name;
+  String organizationId; // Added to match backend
   String projectId;
   String title;
   String company;
@@ -13,8 +14,8 @@ class AvailableExpert {
   String geography;
   String angle;
   String status;
-  int? AIAssessment; // Keep nullable if assessment may not exist
-  String? comments;
+  int AIAssessment; // Changed to non-nullable
+  String comments; // Changed to non-nullable
   final String availability;
   final String expertNetworkName;
   double cost;
@@ -23,11 +24,12 @@ class AvailableExpert {
   DateTime dateAddedExpert;
 
   AvailableExpert({
-    this.isSelected = false, // Provide a default value directly
+    this.isSelected = false,
     required this.expertId,
     required this.name,
+    required this.organizationId, // Now required
     required this.projectId,
-    this.favorite = false, // Provide a default value directly
+    this.favorite = false,
     required this.title,
     required this.company,
     required this.companyType,
@@ -36,8 +38,8 @@ class AvailableExpert {
     required this.geography,
     required this.angle,
     required this.status,
-    this.AIAssessment,
-    this.comments,
+    required this.AIAssessment, // Non-nullable
+    required this.comments, // Non-nullable
     required this.availability,
     required this.expertNetworkName,
     required this.cost,
@@ -57,6 +59,7 @@ class AvailableExpert {
       isSelected: json['isSelected'] ?? false,
       expertId: json['expertId'],
       name: json['name'],
+      organizationId: json['organizationId'], // Added
       projectId: json['projectId'],
       favorite: json['favorite'] ?? false,
       title: json['title'],
@@ -67,8 +70,8 @@ class AvailableExpert {
       geography: json['geography'],
       angle: json['angle'],
       status: json['status'],
-      AIAssessment: json['AIAssessment'],
-      comments: json['comments'],
+      AIAssessment: json['AIAssessment'], // Assume presence in JSON
+      comments: json['comments'], // Assume presence in JSON
       availability: json['availability'],
       expertNetworkName: json['expertNetworkName'],
       cost: json['cost'].toDouble(),
@@ -76,5 +79,30 @@ class AvailableExpert {
       addedExpertBy: json['addedExpertBy'],
       dateAddedExpert: DateTime.parse(json['dateAddedExpert']),
     );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'name': name,
+      'organizationId': organizationId,
+      'projectId': projectId,
+      'favorite': favorite,
+      'title': title,
+      'company': company,
+      'companyType': companyType,
+      'yearsAtCompany': yearsAtCompany,
+      'description': description,
+      'geography': geography,
+      'angle': angle,
+      'status': status,
+      'availability': availability,
+      'expertNetworkName': expertNetworkName,
+      'cost': cost,
+      'screeningQuestions': screeningQuestions,
+      'addedExpertBy': addedExpertBy,
+      'dateAddedExpert':
+          dateAddedExpert.toIso8601String().replaceFirst(RegExp(r'\.\d+'), '') +
+              'Z',
+    };
   }
 }

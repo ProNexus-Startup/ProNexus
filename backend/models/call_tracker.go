@@ -11,12 +11,12 @@ type CallTracker struct {
     Title              string    `json:"title" db:"title"`
     Company            string    `json:"company" db:"company"`
     CompanyType        string    `json:"companyType" db:"company_type"`
-    YearsAtCompany     int       `json:"yearsAtCompany" db:"years_at_company"`
+    YearsAtCompany     string    `json:"yearsAtCompany" db:"years_at_company"`
     Description        string    `json:"description" db:"description"`
     Geography          string    `json:"geography" db:"geography"`
     Angle              string    `json:"angle" db:"angle"`
     Status             string    `json:"status" db:"status"`
-    AIAssessment       string    `json:"AIAssessment" db:"ai_assessment"`
+    AIAssessment       int       `json:"AIAssessment" db:"ai_assessment"`
     Comments           string    `json:"comments" db:"comments"`
     Availability       string    `json:"availability" db:"availability"`
     ExpertNetworkName  string    `json:"expertNetworkName" db:"expert_network_name"`

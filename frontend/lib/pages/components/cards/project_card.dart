@@ -1,5 +1,7 @@
+import 'package:admin/pages/available_experts_dashboard.dart';
 import 'package:admin/utils/global_bloc.dart';
 import 'package:admin/utils/models/project.dart';
+import 'package:admin/utils/persistence/secure_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -20,19 +22,25 @@ class ProjectTile extends StatelessWidget {
         Provider.of<GlobalBloc>(context, listen: false);
 
     return InkWell(
-      onTap: () {
-        globalBloc.setProjectIdFilter(project.projectId);
+      onTap: () async {
+        SecureStorage secureStorage = SecureStorage();
+        globalBloc.setProjectIdFilter(project.projectId!);
+        await secureStorage.write('projectId', project.projectId!);
+
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => AvailableExpertsDashboard(token: token),
+          ),
+        );
       },
       child: Card(
         child: ListTile(
           title: Text(project.name),
           subtitle: Text(
-              'Start date: ${DateFormat('MM/dd/yyyy').format(project.startDate)}\nTarget: ${project.target ?? "Whatever"}\nCalls completed: ${project.callsCompleted}'),
+              'Start date: ${DateFormat('MM/dd/yyyy').format(project.startDate)}\nTarget: ${project.target}\nCalls completed: ${project.callsCompleted}'),
           trailing: ElevatedButton(
-            onPressed: () {
-              // Your existing button press logic here
-            },
-            child: Text(project.status ?? "Missing Status"),
+            onPressed: () async {},
+            child: Text(project.status),
             style: ButtonStyle(
               backgroundColor: MaterialStateProperty.resolveWith<Color>(
                 (Set<MaterialState> states) {

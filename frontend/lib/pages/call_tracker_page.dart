@@ -3,7 +3,6 @@ import 'package:admin/pages/components/top_menu.dart';
 import 'package:admin/pages/schedule_meeting_screen.dart';
 import 'package:admin/responsive.dart';
 import 'package:admin/utils/global_bloc.dart';
-import 'package:admin/utils/BaseAPI.dart';
 import 'package:admin/utils/models/call_tracker.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -20,8 +19,6 @@ class CallTrackerDashboard extends StatefulWidget {
 }
 
 class _CallTrackerDashboardState extends State<CallTrackerDashboard> {
-  final AuthAPI _authAPI = AuthAPI();
-
   bool isAnySelected = false;
 
   // Update this based on checkbox changes
@@ -33,9 +30,6 @@ class _CallTrackerDashboardState extends State<CallTrackerDashboard> {
 
   @override
   Widget build(BuildContext context) {
-    final GlobalBloc globalBloc =
-        Provider.of<GlobalBloc>(context, listen: false);
-
     return Scaffold(
         appBar: PreferredSize(
             preferredSize:
@@ -125,7 +119,7 @@ class _CallTableState extends State<CallTable> {
                       columnSpacing: defaultPadding,
                       showCheckboxColumn: false,
                       columns: [
-                        DataColumn(label: Text("Favorite")),
+                        DataColumn(label: Text("Invite sent to team")),
                         DataColumn(label: Text("Name")),
                         DataColumn(label: Text("Title")),
                         DataColumn(label: Text("Company")),
@@ -141,7 +135,7 @@ class _CallTableState extends State<CallTable> {
                           //.where((call) => globalBloc.applyFilters(
                           //  call)) // Ensure filtering logic is applied
                           .map<DataRow>((call) => recentFileDataRow(
-                              context, call, globalBloc.toggleFavorite))
+                              context, call, globalBloc.toggleScheduled))
                           .toList(),
                     ),
                   ),
@@ -258,7 +252,7 @@ class _CallTableState extends State<CallTable> {
         DataCell(Text(call.angle)),
         DataCell(Text(call.status)),
         DataCell(Text('${call.AIAssessment}')),
-        DataCell(Text(call.comments ?? '')),
+        DataCell(Text(call.comments)),
         DataCell(Text(call.availability)),
       ],
     );

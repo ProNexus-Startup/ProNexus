@@ -10,24 +10,23 @@ type Database struct {
 	organizationRepo    database.OrganizationRepo
 	callTrackerRepo     database.CallTrackerRepo
 	availableExpertRepo database.AvailableExpertRepo
-	projectRepo			database.ProjectRepo
+	projectRepo         database.ProjectRepo
 }
 
 func New(
-	organizations                   *[]models.Organization,
-	users                           *[]models.User,
-	organizationIDToAvailableExpert *[]models.OrganizationIDAndAvailableExpert,
-	organizationIDToCallTracker     *[]models.OrganizationIDAndCallTracker,
-	organizationIDToProject			*[]models.OrganizationIDAndProject,
+	organizations    *[]models.Organization,
+	users            *[]models.User,
+	availableExperts *[]models.AvailableExpert,
+	callTrackers     *[]models.CallTracker,
+	projects         *[]models.Project,
 ) Database {
 	return Database{
 		organizationRepo:    NewOrganizationRepo(organizations),
 		userRepo:            NewUserRepo(users),
-		availableExpertRepo: NewAvailableExpertRepo(organizationIDToAvailableExpert),
-		callTrackerRepo:     NewCallTrackerRepo(organizationIDToCallTracker),
-		projectRepo:		 NewProjectRepo(organizationIDToProject),
+		availableExpertRepo: NewAvailableExpertRepo(availableExperts),
+		callTrackerRepo:     NewCallTrackerRepo(callTrackers),
+		projectRepo:         NewProjectRepo(projects),
 	}
-	
 }
 
 func (d Database) UserRepo() database.UserRepo {
@@ -35,7 +34,7 @@ func (d Database) UserRepo() database.UserRepo {
 }
 
 func (d Database) OrganizationRepo() database.OrganizationRepo {
-	return d.organizationRepo // Fixed typo
+	return d.organizationRepo
 }
 
 func (d Database) CallTrackerRepo() database.CallTrackerRepo {
@@ -50,8 +49,6 @@ func (d Database) ProjectRepo() database.ProjectRepo {
 	return d.projectRepo
 }
 
-// Assuming MigrateStep is required for interface compliance or future use.
 func (d Database) MigrateStep(migrationDir string, steps int) error {
-	// Implementation would go here.
 	return nil
 }

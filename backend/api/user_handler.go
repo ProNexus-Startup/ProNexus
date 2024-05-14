@@ -109,60 +109,79 @@ func (h userHandler) changeProjects() http.HandlerFunc {
     return func(w http.ResponseWriter, r *http.Request) {
         token := r.Header.Get("Authorization")
         if token == "" {
-            h.responder.writeError(w, fmt.Errorf("no Authorization header provided"))
+           h.responder.writeError(w, fmt.Errorf("no Authorization header provided"))
             return
         }
 
         token = strings.TrimPrefix(token, "Bearer ")
         user, err := validateToken(token)
         if err != nil {
+            fmt.Printf("Invalid token: %v\n", err)
             h.responder.writeError(w, fmt.Errorf("invalid token: %v", err))
             return
         }
 
+        fmt.Printf("Token validated for user ID: %s\n", user.ID)
+
         var updateReq ProjectUpdateRequest
         if err := json.NewDecoder(r.Body).Decode(&updateReq); err != nil {
+            fmt.Printf("Error decoding project update request: %v\n", err)
             h.responder.writeError(w, errs.Malformed("project update data"))
             return
         }
 
-        experts, err := h.availableExpertRepo.SelectByOrganizationID(user.OrganizationID)
+        experts, err := h.availableExpertRepo.FindByOrganization(user.OrganizationID)
         if err != nil {
+            fmt.Printf("Error fetching experts: %v\n", err)
             h.responder.writeError(w, fmt.Errorf("error fetching experts: %v", err))
             return
         }
 
         for _, expert := range experts {
             if expert.AddedExpertBy == user.ID && expert.DateAddedExpert.After(updateReq.DateOnboarded) {
-                err := h.availableExpertRepo.Update(user.OrganizationID, models.AvailableExpert{ID: expert.ID, ProjectID: updateReq.NewProject})
+                fmt.Printf("Updating expert ID: %s\n", expert.ID)
+                err := h.availableExpertRepo.Update(models.AvailableExpert{ID: expert.ID, ProjectID: updateReq.NewProject})
                 if err != nil {
+                    fmt.Printf("Error updating expert: %v\n", err)
                     h.responder.writeError(w, fmt.Errorf("error updating expert: %v", err))
                     return
                 }
             }
         }
 
-        calls, err := h.callTrackerRepo.SelectByOrganizationID(user.OrganizationID)
+        calls, err := h.callTrackerRepo.FindByOrganization(user.OrganizationID)
         if err != nil {
+            fmt.Printf("Error fetching calls: %v\n", err)
             h.responder.writeError(w, fmt.Errorf("error fetching calls: %v", err))
             return
         }
 
         for _, call := range calls {
             if call.AddedExpertBy == user.ID && call.DateAddedExpert.After(updateReq.DateOnboarded) {
-                err := h.callTrackerRepo.Update(user.OrganizationID, models.CallTracker{ID: call.ID, ProjectID: updateReq.NewProject})
+                fmt.Printf("Updating call ID: %s\n", call.ID)
+                err := h.callTrackerRepo.Update(models.CallTracker{ID: call.ID, ProjectID: updateReq.NewProject})
                 if err != nil {
+                    fmt.Printf("Error updating call: %v\n", err)
                     h.responder.writeError(w, fmt.Errorf("error updating call: %v", err))
                     return
                 }
             }
         }
 
-        if err := h.userRepo.Update(models.User{ID: user.ID, ProjectID: updateReq.NewProject, DateOnboarded: updateReq.DateOnboarded}); err != nil {
+        pastProjects := user.PastProjectIDs
+        newProjects := append(pastProjects, user.ProjectID)
+
+        if err := h.userRepo.Update(models.User{
+            ID: user.ID, 
+            ProjectID: updateReq.NewProject, 
+            DateOnboarded: updateReq.DateOnboarded, 
+            PastProjectIDs: newProjects,
+        }); err != nil {
+            fmt.Printf("Error updating user information: %v\n", err)
             h.responder.writeError(w, fmt.Errorf("error updating user information: %v", err))
             return
         }
-
+        
         h.responder.writeJSON(w, map[string]string{"message": "Successfully changed projects"})
     }
 }

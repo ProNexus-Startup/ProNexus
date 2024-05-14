@@ -50,10 +50,10 @@ class _LoginPageState extends State<LoginPage> {
       if (req.statusCode == 200) {
         var token = jsonDecode(req.body);
         await SecureStorage().write('token', token);
+        print("token");
         if (!context.mounted) {
           return;
         }
-        //BlocProvider.of<UserCubit>(context).login(user); add back when you need to update user info
         SharedPreferences prefs = await SharedPreferences.getInstance();
         prefs.setBool("isLoggedIn", true);
         if (!context.mounted) {
