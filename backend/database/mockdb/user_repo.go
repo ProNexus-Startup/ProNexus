@@ -42,16 +42,6 @@ func (r *UserRepo) FindByID(id string) (models.User, error) {
     return models.User{}, errs.NewNotFound("user")
 }
 
-func (r *UserRepo) FindByToken(token string) (models.User, error) {
-    for _, user := range *r.users {
-        // Correctly compare the passed email with the Email field of the user
-        if user.Token == token {
-            return user, nil
-        }
-    }
-    // Assuming errs.NewNotFound is a correct call to a custom error handling function
-    return models.User{}, errs.NewNotFound("user")
-}
 
 
 func (r *UserRepo) Insert(desiredUser models.User) error {
@@ -61,7 +51,6 @@ func (r *UserRepo) Insert(desiredUser models.User) error {
 	*r.users = append(*r.users, desiredUser)
 	return nil
 }
-
 func (r *UserRepo) Update(userFields models.User) error {
     if userFields.ID == "" {
         return fmt.Errorf("error: missing ID field in argument")
@@ -81,11 +70,17 @@ func (r *UserRepo) Update(userFields models.User) error {
             if userFields.OrganizationID != "" {
                 (*r.users)[i].OrganizationID = userFields.OrganizationID
             }
-            if userFields.ProjectID != "" {
-                (*r.users)[i].ProjectID = userFields.ProjectID
+            if !userFields.DateOnboarded.IsZero() {
+                (*r.users)[i].DateOnboarded = userFields.DateOnboarded
             }
-            if len(userFields.PastProjectIDs) > 0 {
-                (*r.users)[i].PastProjectIDs = userFields.PastProjectIDs
+            if len(userFields.PastProjects) > 0 {
+                (*r.users)[i].PastProjects = userFields.PastProjects
+            }
+            if userFields.Admin {
+                (*r.users)[i].Admin = userFields.Admin
+            }
+            if userFields.Level != "" {
+                (*r.users)[i].Level = userFields.Level
             }
             if !userFields.SignedAt.IsZero() {
                 (*r.users)[i].SignedAt = userFields.SignedAt

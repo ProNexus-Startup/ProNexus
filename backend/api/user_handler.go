@@ -104,12 +104,11 @@ type ProjectUpdateRequest struct {
     NewProject     string    `json:"newProject"`
     DateOnboarded  time.Time `json:"dateOnboarded"`
 }
-
 func (h userHandler) changeProjects() http.HandlerFunc {
     return func(w http.ResponseWriter, r *http.Request) {
         token := r.Header.Get("Authorization")
         if token == "" {
-           h.responder.writeError(w, fmt.Errorf("no Authorization header provided"))
+            h.responder.writeError(w, fmt.Errorf("no Authorization header provided"))
             return
         }
 
@@ -130,58 +129,24 @@ func (h userHandler) changeProjects() http.HandlerFunc {
             return
         }
 
-        experts, err := h.availableExpertRepo.FindByOrganization(user.OrganizationID)
-        if err != nil {
-            fmt.Printf("Error fetching experts: %v\n", err)
-            h.responder.writeError(w, fmt.Errorf("error fetching experts: %v", err))
-            return
-        }
-
-        for _, expert := range experts {
-            if expert.AddedExpertBy == user.ID && expert.DateAddedExpert.After(updateReq.DateOnboarded) {
-                fmt.Printf("Updating expert ID: %s\n", expert.ID)
-                err := h.availableExpertRepo.Update(models.AvailableExpert{ID: expert.ID, ProjectID: updateReq.NewProject})
-                if err != nil {
-                    fmt.Printf("Error updating expert: %v\n", err)
-                    h.responder.writeError(w, fmt.Errorf("error updating expert: %v", err))
-                    return
-                }
+        // Save the current project to past projects before updating
+        if user.CurrentProject != "" {
+            pastProj := models.Proj{
+                Start:     user.DateOnboarded,
+                ProjectID: user.CurrentProject,
             }
+            user.PastProjects = append(user.PastProjects, pastProj)
         }
 
-        calls, err := h.callTrackerRepo.FindByOrganization(user.OrganizationID)
-        if err != nil {
-            fmt.Printf("Error fetching calls: %v\n", err)
-            h.responder.writeError(w, fmt.Errorf("error fetching calls: %v", err))
-            return
-        }
+        user.CurrentProject = updateReq.NewProject
+        user.DateOnboarded = updateReq.DateOnboarded
 
-        for _, call := range calls {
-            if call.AddedExpertBy == user.ID && call.DateAddedExpert.After(updateReq.DateOnboarded) {
-                fmt.Printf("Updating call ID: %s\n", call.ID)
-                err := h.callTrackerRepo.Update(models.CallTracker{ID: call.ID, ProjectID: updateReq.NewProject})
-                if err != nil {
-                    fmt.Printf("Error updating call: %v\n", err)
-                    h.responder.writeError(w, fmt.Errorf("error updating call: %v", err))
-                    return
-                }
-            }
-        }
-
-        pastProjects := user.PastProjectIDs
-        newProjects := append(pastProjects, user.ProjectID)
-
-        if err := h.userRepo.Update(models.User{
-            ID: user.ID, 
-            ProjectID: updateReq.NewProject, 
-            DateOnboarded: updateReq.DateOnboarded, 
-            PastProjectIDs: newProjects,
-        }); err != nil {
+        if err := h.userRepo.Update(user); err != nil {
             fmt.Printf("Error updating user information: %v\n", err)
             h.responder.writeError(w, fmt.Errorf("error updating user information: %v", err))
             return
         }
-        
+
         h.responder.writeJSON(w, map[string]string{"message": "Successfully changed projects"})
     }
 }

@@ -1,18 +1,16 @@
 import 'dart:async';
 
-import 'package:admin/pages/admin_view.dart';
 import 'package:admin/pages/home_page.dart';
-import 'package:admin/utils/global_bloc.dart';
+import 'package:admin/utils/persistence/global_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../pages/login_page.dart'; // Ensure this path is correct
+import 'package:shared_preferences/shared_preferences.dart';
+import '../pages/login_page.dart';
 import '../utils/persistence/secure_storage.dart';
-import '../utils/persistence/screen_arguments.dart'; // Ensure this is the correct import
+import '../utils/persistence/screen_arguments.dart';
 
 class SplashPage extends StatefulWidget {
-  static const String routeName =
-      '/splash'; // Add a route name if you're using named routes
-
+  static const String routeName = '/splash';
   @override
   _SplashPageState createState() => _SplashPageState();
 }
@@ -30,8 +28,7 @@ class _SplashPageState extends State<SplashPage> {
       body: Container(
         decoration: BoxDecoration(
           image: DecorationImage(
-            image: AssetImage(
-                "assets/images/logo.png"), // Make sure the path is correct
+            image: AssetImage("images/logo.png"),
             fit: BoxFit.cover,
           ),
         ),
@@ -40,26 +37,26 @@ class _SplashPageState extends State<SplashPage> {
   }
 
   void startTimer() {
-    Timer(Duration(seconds: 1),
-        navigateUser); // Updated to 2 seconds for better UX
+    Timer(Duration(seconds: 1), navigateUser);
   }
 
   void navigateUser() async {
-    // Initialize SecureStorage
     SecureStorage secureStorage = SecureStorage();
-    // Attempt to read the token from secure storage
     String? token = await secureStorage.read('token');
     final GlobalBloc globalBloc =
         Provider.of<GlobalBloc>(context, listen: false);
 
     await globalBloc.onUserLogin(token!);
 
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String last_route = prefs.getString('last_route') ?? HomePage.routeName;
+
     if (token != 'No data found!' && token.isNotEmpty) {
       if (globalBloc.currentUser.admin) {
-        Navigator.pushReplacementNamed(context, AdminPage.routeName,
+        Navigator.pushReplacementNamed(context, last_route,
             arguments: ScreenArguments(token));
       } else {
-        Navigator.pushReplacementNamed(context, HomePage.routeName,
+        Navigator.pushReplacementNamed(context, last_route,
             arguments: ScreenArguments(token));
       }
     } else {

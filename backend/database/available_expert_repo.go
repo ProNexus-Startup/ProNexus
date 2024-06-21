@@ -10,5 +10,5 @@ type AvailableExpertRepo interface {
     Insert(entry models.AvailableExpert) error
     Delete(availableExpertID string) error
     Update(updatedTracker models.AvailableExpert) error
-
+    FindByID(id string) (models.AvailableExpert, error)
 }

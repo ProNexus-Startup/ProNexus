@@ -1,108 +1,261 @@
 class AvailableExpert {
-  bool isSelected = false;
-  bool favorite = false;
+  bool isSelected;
+  bool favorite;
 
   final String expertId;
   String name;
-  String organizationId; // Added to match backend
+  String organizationId;
   String projectId;
-  String title;
+  String profession;
   String company;
-  String companyType;
-  String yearsAtCompany;
-  String description;
-  String geography;
-  String angle;
-  String status;
-  int AIAssessment; // Changed to non-nullable
-  String comments; // Changed to non-nullable
-  final String availability;
-  final String expertNetworkName;
-  double cost;
-  List<String> screeningQuestions;
-  String addedExpertBy;
-  DateTime dateAddedExpert;
+  String? companyType;
+  DateTime? startDate;
+  String? description;
+  String? geography;
+  String? angle;
+  String? status;
+  int? aiAssessment;
+  String? aiAnalysis;
+  String? comments;
+  List<Availability>? availabilities;
+  String? expertNetworkName;
+  double? cost;
+  List<Question>? screeningQuestionsAndAnswers;
+  List<Job>? employmentHistory;
+  String? addedExpertBy;
+  DateTime? dateAddedExpert;
+  String? trends;
+  String? linkedInLink;
 
-  AvailableExpert({
-    this.isSelected = false,
-    required this.expertId,
-    required this.name,
-    required this.organizationId, // Now required
-    required this.projectId,
-    this.favorite = false,
-    required this.title,
-    required this.company,
-    required this.companyType,
-    required this.yearsAtCompany,
-    required this.description,
-    required this.geography,
-    required this.angle,
-    required this.status,
-    required this.AIAssessment, // Non-nullable
-    required this.comments, // Non-nullable
-    required this.availability,
-    required this.expertNetworkName,
-    required this.cost,
-    required this.screeningQuestions,
-    required this.addedExpertBy,
-    required this.dateAddedExpert,
-  });
+  AvailableExpert(
+      {this.isSelected = false,
+      required this.expertId,
+      required this.name,
+      required this.organizationId,
+      required this.projectId,
+      this.favorite = false,
+      required this.profession,
+      required this.company,
+      this.companyType,
+      this.startDate,
+      this.description,
+      this.geography,
+      this.angle,
+      this.status,
+      this.aiAssessment,
+      this.aiAnalysis,
+      this.comments,
+      this.availabilities,
+      this.expertNetworkName,
+      this.cost,
+      this.screeningQuestionsAndAnswers,
+      this.employmentHistory,
+      this.addedExpertBy,
+      this.dateAddedExpert,
+      this.trends,
+      this.linkedInLink});
 
+  factory AvailableExpert.defaultExpert() {
+    return AvailableExpert(
+      expertId: 'defaultId',
+      name: 'Default Name',
+      organizationId: 'defaultOrganizationId',
+      projectId: 'defaultProjectId',
+      profession: 'Default Profession',
+      company: 'Default Company',
+      companyType: 'Default Company Type',
+      startDate: DateTime.now(),
+      description: 'Default Description',
+      geography: 'Default Geography',
+      angle: 'Default Angle',
+      status: 'Default Status',
+      aiAssessment: 0,
+      aiAnalysis: 'Default AI Analysis',
+      comments: 'Default Comments',
+      availabilities: [],
+      expertNetworkName: 'Default Expert Network',
+      cost: 0.0,
+      screeningQuestionsAndAnswers: [],
+      employmentHistory: [],
+      addedExpertBy: 'Default Adder',
+      dateAddedExpert: DateTime.now(),
+      trends: 'Default Trends',
+      linkedInLink: 'https://www.linkedin.com/default',
+    );
+  }
   factory AvailableExpert.fromJson(Map<String, dynamic> json) {
-    var screeningQuestionsFromJson = json['screeningQuestions'];
-    List<String> screeningQuestionsList = screeningQuestionsFromJson != null
-        ? List<String>.from(
-            screeningQuestionsFromJson.map((question) => question.toString()))
+    var screeningQuestionsFromJson =
+        json['screeningQuestionsAndAnswers'] as List<dynamic>?;
+    List<Question> screeningQuestionsList = screeningQuestionsFromJson != null
+        ? List<Question>.from(screeningQuestionsFromJson
+            .map((question) => Question.fromJson(question)))
+        : [];
+
+    var availabilitiesFromJson = json['availabilities'] as List<dynamic>?;
+    List<Availability> availabilitiesList = availabilitiesFromJson != null
+        ? List<Availability>.from(availabilitiesFromJson
+            .map((availability) => Availability.fromJson(availability)))
+        : [];
+
+    var employmentHistoryFromJson = json['employmentHistory'] as List<dynamic>?;
+    List<Job> employmentHistoryList = employmentHistoryFromJson != null
+        ? List<Job>.from(
+            employmentHistoryFromJson.map((job) => Job.fromJson(job)))
         : [];
 
     return AvailableExpert(
       isSelected: json['isSelected'] ?? false,
-      expertId: json['expertId'],
-      name: json['name'],
-      organizationId: json['organizationId'], // Added
-      projectId: json['projectId'],
+      expertId: json['expertId'] ?? '',
+      name: json['name'] ?? '',
+      organizationId: json['organizationId'] ?? '',
+      projectId: json['projectId'] ?? '',
       favorite: json['favorite'] ?? false,
-      title: json['title'],
-      company: json['company'],
+      profession: json['profession'] ?? '',
+      company: json['company'] ?? '',
       companyType: json['companyType'],
-      yearsAtCompany: json['yearsAtCompany'],
+      startDate:
+          json['startDate'] != null ? DateTime.parse(json['startDate']) : null,
       description: json['description'],
       geography: json['geography'],
       angle: json['angle'],
       status: json['status'],
-      AIAssessment: json['AIAssessment'], // Assume presence in JSON
-      comments: json['comments'], // Assume presence in JSON
-      availability: json['availability'],
+      aiAssessment: json['aiAssessment'],
+      aiAnalysis: json['aiAnalysis'],
+      comments: json['comments'],
+      availabilities: availabilitiesList,
       expertNetworkName: json['expertNetworkName'],
-      cost: json['cost'].toDouble(),
-      screeningQuestions: screeningQuestionsList,
+      cost: json['cost']?.toDouble(),
+      screeningQuestionsAndAnswers: screeningQuestionsList,
+      employmentHistory: employmentHistoryList,
       addedExpertBy: json['addedExpertBy'],
-      dateAddedExpert: DateTime.parse(json['dateAddedExpert']),
+      dateAddedExpert: json['dateAddedExpert'] != null
+          ? DateTime.parse(json['dateAddedExpert'])
+          : null,
+      trends: json['trends'],
+      linkedInLink: json['linkedInLink'],
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
+      'expertId': expertId,
       'name': name,
       'organizationId': organizationId,
       'projectId': projectId,
       'favorite': favorite,
-      'title': title,
+      'profession': profession,
       'company': company,
       'companyType': companyType,
-      'yearsAtCompany': yearsAtCompany,
+      'startDate':
+          startDate!.toIso8601String().replaceFirst(RegExp(r'\.\d+'), '') + 'Z',
       'description': description,
       'geography': geography,
       'angle': angle,
       'status': status,
-      'availability': availability,
+      'aiAssessment': aiAssessment,
+      'aiAnalysis': aiAnalysis,
+      'comments': comments,
+      'availabilities': availabilities?.map((a) => a.toJson()).toList(),
       'expertNetworkName': expertNetworkName,
       'cost': cost,
-      'screeningQuestions': screeningQuestions,
+      'screeningQuestionsAndAnswers':
+          screeningQuestionsAndAnswers?.map((q) => q.toJson()).toList(),
+      'employmentHistory':
+          employmentHistory?.map((job) => job.toJson()).toList(),
       'addedExpertBy': addedExpertBy,
-      'dateAddedExpert':
-          dateAddedExpert.toIso8601String().replaceFirst(RegExp(r'\.\d+'), '') +
-              'Z',
+      'dateAddedExpert': dateAddedExpert!
+              .toIso8601String()
+              .replaceFirst(RegExp(r'\.\d+'), '') +
+          'Z',
+      'trends': trends,
+      'linkedInLink': linkedInLink,
+    };
+  }
+}
+
+class Question {
+  String question;
+  String answer;
+
+  Question({required this.question, required this.answer});
+
+  factory Question.fromJson(Map<String, dynamic> json) {
+    return Question(
+      question: json['question'] ?? '',
+      answer: json['answer'] ?? '',
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'question': question,
+      'answer': answer,
+    };
+  }
+}
+
+class Job {
+  String role;
+  String company;
+  DateTime? startDate;
+  DateTime? endDate;
+
+  Job({
+    required this.role,
+    required this.company,
+    this.startDate,
+    this.endDate,
+  });
+
+  factory Job.fromJson(Map<String, dynamic> json) {
+    return Job(
+      role: json['Role'] ?? '', // Ensure this matches your JSON key
+      company: json['Company'] ?? '', // Ensure this matches your JSON key
+      startDate:
+          json['StartDate'] != null ? DateTime.parse(json['StartDate']) : null,
+      endDate: json['EndDate'] != null && json['EndDate'].isNotEmpty
+          ? DateTime.parse(json['EndDate'])
+          : null,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'role': role,
+      'company': company,
+      'startDate':
+          startDate!.toIso8601String().replaceFirst(RegExp(r'\.\d+'), '') + 'Z',
+      'endDate':
+          endDate!.toIso8601String().replaceFirst(RegExp(r'\.\d+'), '') + 'Z',
+    };
+  }
+}
+
+class Availability {
+  DateTime? start;
+  DateTime? end;
+  String timeZone;
+
+  Availability({
+    this.start,
+    this.end,
+    required this.timeZone,
+  });
+
+  factory Availability.fromJson(Map<String, dynamic> json) {
+    return Availability(
+      start: json['start'] != null ? DateTime.parse(json['start']) : null,
+      end: json['end'] != null ? DateTime.parse(json['end']) : null,
+      timeZone: json['timeZone'] ?? '',
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'start':
+          start!.toIso8601String().replaceFirst(RegExp(r'\.\d+'), '') + 'Z',
+      'end': end!.toIso8601String().replaceFirst(RegExp(r'\.\d+'), '') + 'Z',
+      'timeZone': timeZone,
     };
   }
 }

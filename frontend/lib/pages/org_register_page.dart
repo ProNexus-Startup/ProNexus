@@ -35,28 +35,25 @@ class _OrgRegisterPageState extends State<OrgRegisterPage> {
       );
       // Use the text property to get the string value from the controllers
       var req = await _authAPI.makeOrg(orgNameController.text);
-      print(req.statusCode);
       if (req.statusCode == 201 || req.statusCode == 200) {
+        print('this happened');
         // || req.statusCode == 409) {
         if (!context.mounted) {
-          print("context not mounted");
           return;
         }
         var data = jsonDecode(req.body);
-        print(data);
         String orgID = data['organizationID'];
         await SecureStorage().write('organizationID', orgID);
         Navigator.pushNamed(context, UserRegisterPage.routeName,
             arguments: ScreenArguments(orgID));
-        const SnackBar(content: Text('Organization succesfully registered.'));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+              content: Text('Organization successfully registered.')),
+        );
       } else {
-        const SnackBar(content: Text('Problem registering.'));
-      }
-
-      @override
-      Widget build(BuildContext context) {
-        // TODO: implement build
-        throw UnimplementedError();
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Problem registering.')),
+        );
       }
     }
   }

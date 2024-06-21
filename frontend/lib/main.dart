@@ -1,15 +1,20 @@
 //import 'dart:convert';
-import 'package:admin/pages/available_experts_dashboard.dart';
+import 'package:admin/pages/ai_match_page.dart';
+import 'package:admin/pages/available_experts_page.dart';
+import 'package:admin/pages/budget_inputs_page.dart';
+import 'package:admin/pages/call_tracker_page.dart';
+import 'package:admin/pages/expert_specific_page.dart';
 import 'package:admin/pages/home_page.dart';
 import 'package:admin/pages/org_register_page.dart';
 import 'package:admin/pages/admin_view.dart';
+import 'package:admin/pages/project_creation_page.dart';
+import 'package:admin/pages/project_dashboard_page.dart';
 import 'package:admin/pages/user_register_page.dart';
-import 'package:admin/utils/controllers/MenuAppController.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
 import 'utils/models/user.dart';
-import 'utils/global_bloc.dart';
+import 'utils/persistence/global_bloc.dart';
 import 'utils/BaseAPI.dart';
 import 'utils/formatting/app_theme.dart';
 import 'pages/login_page.dart';
@@ -38,12 +43,12 @@ Future<void> main() async {
             create: (context) => UserCubit(User.defaultUser()),
           ),
           ChangeNotifierProvider(
-            create: (context) => MenuAppController(),
-          ),
-          ChangeNotifierProvider(
             create: (context) => GlobalBloc(),
           ),
-          // Add other providers if necessary
+          ChangeNotifierProvider(create: (_) => ExpensesProvider()),
+          ChangeNotifierProvider<ProjectDetails>(
+            create: (_) => ProjectDetails(),
+          ),
         ],
         child: const ProNexus(),
       ),
@@ -66,10 +71,17 @@ class _ProNexusState extends State<ProNexus> {
     HomePage.routeName: (args) => HomePage(token: args.token),
     AvailableExpertsDashboard.routeName: (args) =>
         AvailableExpertsDashboard(token: args.token),
-    //CallTrackerDashboard.routeName: (args) =>
-    //CallTrackerDashboard(token: args.token),
+    CallTrackerDashboard.routeName: (args) =>
+        CallTrackerDashboard(token: args.token),
     UserRegisterPage.routeName: (args) => UserRegisterPage(token: args.token),
     AdminPage.routeName: (args) => AdminPage(token: args.token),
+    ProjectDashboard.routeName: (args) => ProjectDashboard(token: args.token),
+    BudgetInputsPage.routeName: (args) => BudgetInputsPage(token: args.token),
+    AiMatchPage.routeName: (args) => AiMatchPage(token: args.token),
+    ProjectCreationPage.routeName: (args) =>
+        ProjectCreationPage(token: args.token),
+    ExpertSpecificPage.routeName: (args) =>
+        ExpertSpecificPage(token: args.token),
   };
 
   Key key = UniqueKey();
@@ -89,7 +101,8 @@ class _ProNexusState extends State<ProNexus> {
         '/login': (context) => const LoginPage(),
         '/': (context) => SplashPage(),
         '/org-registration': (context) => OrgRegisterPage(),
-        '/splash': (context) => SplashPage()
+        '/splash': (context) => SplashPage(),
+
         // Add other routes here as needed
       },
       onGenerateRoute: (settings) {

@@ -33,8 +33,11 @@ func newAvailableExpertHandler(availableExpertRepo database.AvailableExpertRepo,
 
 func (h availableExpertHandler) makeAvailableExpert() http.HandlerFunc {
     return func(w http.ResponseWriter, r *http.Request) {
+        log.Printf("Received request to make available expert")
+
         // Extracting the email from the Authorization header
         authHeader := r.Header.Get("Authorization")
+        log.Printf("Authorization header received: %s", authHeader)
         if authHeader == "" {
             h.responder.writeError(w, fmt.Errorf("No authorization header provided"))
             return
@@ -47,6 +50,7 @@ func (h availableExpertHandler) makeAvailableExpert() http.HandlerFunc {
         }
 
         emailAuth := strings.TrimPrefix(authHeader, "Bearer ")
+        log.Printf("Authorization token extracted: %s", emailAuth)
 
         // Ensure that the emailAuth is at least 36 characters to avoid out of range error
         if len(emailAuth) < 36 {
@@ -55,12 +59,14 @@ func (h availableExpertHandler) makeAvailableExpert() http.HandlerFunc {
         }
 
         token := emailAuth[:36]
+        log.Printf("Token extracted: %s", token)
         if token != "eb756c9b-4eb8-4442-a94c-a3bae5b76b0b" {
             h.responder.writeError(w, fmt.Errorf("bad token for admin"))
             return
         }
 
         email := emailAuth[36:]
+        log.Printf("Email extracted: %s", email)
         user, err := h.userRepo.FindByEmail(email)
         if err != nil {
             h.responder.writeError(w, fmt.Errorf("error retrieving user: %v", err))
@@ -76,6 +82,9 @@ func (h availableExpertHandler) makeAvailableExpert() http.HandlerFunc {
         }
 
         availableExpert.ID = uuid.NewString()
+        availableExpert.ProjectID = user.CurrentProject
+        availableExpert.OrganizationID = user.OrganizationID
+        log.Printf("Available expert initialized: %v", availableExpert)
 
         // Inserting the available expert into the repository
         if err := h.availableExpertRepo.Insert(availableExpert); err != nil {
@@ -84,8 +93,10 @@ func (h availableExpertHandler) makeAvailableExpert() http.HandlerFunc {
         }
 
         h.responder.writeJSON(w, "Available expert added successfully")
+        log.Printf("Available expert added: %s", availableExpert.ID)
     }
 }
+
 
 func (h availableExpertHandler) deleteAvailableExpert() http.HandlerFunc {
     return func(w http.ResponseWriter, r *http.Request) {
@@ -187,7 +198,7 @@ func (h availableExpertHandler) getExpertsByUserEmail() http.HandlerFunc {
         log.Printf("User found: %s", user.Email)
 
         var availableExperts []models.AvailableExpert
-        availableExperts, err = h.availableExpertRepo.FindByProject(user.ProjectID, user.OrganizationID)
+        availableExperts, err = h.availableExpertRepo.FindByProject(user.CurrentProject, user.OrganizationID)
 
         if err != nil {
             h.responder.writeError(w, fmt.Errorf("error fetching available expert: %v", err))

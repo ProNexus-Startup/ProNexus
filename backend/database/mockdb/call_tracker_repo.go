@@ -4,6 +4,8 @@ import (
     "errors"
     "github.com/google/uuid"
     "github.com/rpupo63/ProNexus/backend/models"
+    "time"
+    "reflect"
 )
 
 type CallTrackerRepo struct {
@@ -56,93 +58,49 @@ func (r *CallTrackerRepo) Delete(callID string) error {
     }
     return errors.New("call not found")
 }
-
 func (r *CallTrackerRepo) Update(updatedCall models.CallTracker) error {
-    calls := *r.calls
-    for i, call := range calls {
+    for i, call := range *r.calls {
         if call.ID == updatedCall.ID {
-            // Update fields if they are not zero-values (default values)
-            if updatedCall.Name != "" {
-                calls[i].Name = updatedCall.Name
+            updateField := func(newVal, oldVal interface{}) interface{} {
+                if newVal != oldVal && newVal != reflect.Zero(reflect.TypeOf(newVal)).Interface() {
+                    return newVal
+                }
+                return oldVal
             }
-            if updatedCall.OrganizationID != "" {
-                calls[i].OrganizationID = updatedCall.OrganizationID
-            }
-            if updatedCall.ProjectID != "" {
-                calls[i].ProjectID = updatedCall.ProjectID
-            }
-            if updatedCall.Title != "" {
-                calls[i].Title = updatedCall.Title
-            }
-            if updatedCall.Company != "" {
-                calls[i].Company = updatedCall.Company
-            }
-            if updatedCall.CompanyType != "" {
-                calls[i].CompanyType = updatedCall.CompanyType
-            }
-            if updatedCall.YearsAtCompany != "" {
-                calls[i].YearsAtCompany = updatedCall.YearsAtCompany
-            }
-            if updatedCall.Description != "" {
-                calls[i].Description = updatedCall.Description
-            }
-            if updatedCall.Geography != "" {
-                calls[i].Geography = updatedCall.Geography
-            }
-            if updatedCall.Angle != "" {
-                calls[i].Angle = updatedCall.Angle
-            }
-            if updatedCall.Status != "" {
-                calls[i].Status = updatedCall.Status
-            }
-            if updatedCall.AIAssessment != 0 {
-                calls[i].AIAssessment = updatedCall.AIAssessment
-            }
-            if updatedCall.Comments != "" {
-                calls[i].Comments = updatedCall.Comments
-            }
-            if updatedCall.Availability != "" {
-                calls[i].Availability = updatedCall.Availability
-            }
-            if updatedCall.ExpertNetworkName != "" {
-                calls[i].ExpertNetworkName = updatedCall.ExpertNetworkName
-            }
-            if updatedCall.Cost != 0 {
-                calls[i].Cost = updatedCall.Cost
-            }
-            if updatedCall.ScreeningQuestions != nil {
-                calls[i].ScreeningQuestions = updatedCall.ScreeningQuestions
-            }
-            if updatedCall.AddedExpertBy != "" {
-                calls[i].AddedExpertBy = updatedCall.AddedExpertBy
-            }
-            if !updatedCall.DateAddedExpert.IsZero() {
-                calls[i].DateAddedExpert = updatedCall.DateAddedExpert
-            }
-            if updatedCall.AddedCallBy != "" {
-                calls[i].AddedCallBy = updatedCall.AddedCallBy
-            }
-            if !updatedCall.DateAddedCall.IsZero() {
-                calls[i].DateAddedCall = updatedCall.DateAddedCall
-            }
+
+            calls := *r.calls
+
+            calls[i].Name = updateField(updatedCall.Name, calls[i].Name).(string)
+            calls[i].OrganizationID = updateField(updatedCall.OrganizationID, calls[i].OrganizationID).(string)
+            calls[i].ProjectID = updateField(updatedCall.ProjectID, calls[i].ProjectID).(string)
+            calls[i].Profession = updateField(updatedCall.Profession, calls[i].Profession).(string)
+            calls[i].Company = updateField(updatedCall.Company, calls[i].Company).(string)
+            calls[i].CompanyType = updateField(updatedCall.CompanyType, calls[i].CompanyType).(string)
+            calls[i].StartDate = updateField(updatedCall.StartDate, calls[i].StartDate).(time.Time)
+            calls[i].Description = updateField(updatedCall.Description, calls[i].Description).(string)
+            calls[i].Geography = updateField(updatedCall.Geography, calls[i].Geography).(string)
+            calls[i].Angle = updateField(updatedCall.Angle, calls[i].Angle).(string)
+            calls[i].Status = updateField(updatedCall.Status, calls[i].Status).(string)
+            calls[i].AIAssessment = updateField(updatedCall.AIAssessment, calls[i].AIAssessment).(int)
+            calls[i].AIAnalysis = updateField(updatedCall.AIAnalysis, calls[i].AIAnalysis).(string)
+            calls[i].Comments = updateField(updatedCall.Comments, calls[i].Comments).(string)
+            calls[i].Availabilities = updateField(updatedCall.Availabilities, calls[i].Availabilities).([]models.Availability)
+            calls[i].ExpertNetworkName = updateField(updatedCall.ExpertNetworkName, calls[i].ExpertNetworkName).(string)
+            calls[i].Cost = updateField(updatedCall.Cost, calls[i].Cost).(float64)
+            calls[i].ScreeningQuestionsAndAnswers = updateField(updatedCall.ScreeningQuestionsAndAnswers, calls[i].ScreeningQuestionsAndAnswers).([]models.Question)
+            calls[i].AddedExpertBy = updateField(updatedCall.AddedExpertBy, calls[i].AddedExpertBy).(string)
+            calls[i].DateAddedExpert = updateField(updatedCall.DateAddedExpert, calls[i].DateAddedExpert).(time.Time)
+            calls[i].AddedCallBy = updateField(updatedCall.AddedCallBy, calls[i].AddedCallBy).(string)
+            calls[i].DateAddedCall = updateField(updatedCall.DateAddedCall, calls[i].DateAddedCall).(time.Time)
             calls[i].InviteSent = updatedCall.InviteSent // always update because it's a boolean
-            if !updatedCall.MeetingStartDate.IsZero() {
-                calls[i].MeetingStartDate = updatedCall.MeetingStartDate
-            }
-            if !updatedCall.MeetingEndDate.IsZero() {
-                calls[i].MeetingEndDate = updatedCall.MeetingEndDate
-            }
+            calls[i].MeetingStartDate = updateField(updatedCall.MeetingStartDate, calls[i].MeetingStartDate).(time.Time)
+            calls[i].MeetingEndDate = updateField(updatedCall.MeetingEndDate, calls[i].MeetingEndDate).(time.Time)
             calls[i].PaidStatus = updatedCall.PaidStatus // always update because it's a boolean
-            if updatedCall.Rating != 0 {
-                calls[i].Rating = updatedCall.Rating
-            }
+            calls[i].Rating = updateField(updatedCall.Rating, calls[i].Rating).(int)
             calls[i].Favorite = updatedCall.Favorite // always update because it's a boolean
 
-            // Replace the record in the slice
-            (*r.calls)[i] = calls[i]
             return nil
         }
     }
     return errors.New("call not found")
 }
-

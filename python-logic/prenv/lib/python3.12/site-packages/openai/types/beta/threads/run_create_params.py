@@ -7,6 +7,7 @@ from typing_extensions import Literal, Required, TypedDict
 
 from ..assistant_tool_param import AssistantToolParam
 from ..file_search_tool_param import FileSearchToolParam
+from .message_content_part_param import MessageContentPartParam
 from ..code_interpreter_tool_param import CodeInterpreterToolParam
 from ..assistant_tool_choice_option_param import AssistantToolChoiceOptionParam
 from ..assistant_response_format_option_param import AssistantResponseFormatOptionParam
@@ -76,6 +77,8 @@ class RunCreateParamsBase(TypedDict, total=False):
     model: Union[
         str,
         Literal[
+            "gpt-4o",
+            "gpt-4o-2024-05-13",
             "gpt-4-turbo",
             "gpt-4-turbo-2024-04-09",
             "gpt-4-0125-preview",
@@ -107,9 +110,9 @@ class RunCreateParamsBase(TypedDict, total=False):
     response_format: Optional[AssistantResponseFormatOptionParam]
     """Specifies the format that the model must output.
 
-    Compatible with
-    [GPT-4 Turbo](https://platform.openai.com/docs/models/gpt-4-and-gpt-4-turbo) and
-    all GPT-3.5 Turbo models since `gpt-3.5-turbo-1106`.
+    Compatible with [GPT-4o](https://platform.openai.com/docs/models/gpt-4o),
+    [GPT-4 Turbo](https://platform.openai.com/docs/models/gpt-4-turbo-and-gpt-4),
+    and all GPT-3.5 Turbo models since `gpt-3.5-turbo-1106`.
 
     Setting to `{ "type": "json_object" }` enables JSON mode, which guarantees the
     message the model generates is valid JSON.
@@ -175,8 +178,8 @@ class AdditionalMessageAttachment(TypedDict, total=False):
 
 
 class AdditionalMessage(TypedDict, total=False):
-    content: Required[str]
-    """The content of the message."""
+    content: Required[Union[str, Iterable[MessageContentPartParam]]]
+    """The text contents of the message."""
 
     role: Required[Literal["user", "assistant"]]
     """The role of the entity that is creating the message. Allowed values include:

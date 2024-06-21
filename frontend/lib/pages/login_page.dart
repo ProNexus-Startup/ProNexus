@@ -1,20 +1,12 @@
 import 'dart:convert';
-
-import 'package:admin/utils/global_bloc.dart';
+import 'package:admin/utils/persistence/global_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-//import 'package:flutter_bloc/flutter_bloc.dart';
 import 'splash_page.dart';
-
-///import 'home_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../utils/formatting/app_text_form_field.dart';
-//import 'resources/vectors.dart';
-//import '../utils/extensions.dart';
-//import '../../utils/formatting/app_constants.dart';
 import '../utils/BaseAPI.dart';
 import '../utils/persistence/secure_storage.dart';
-//import '../utils/login_stuff/screen_arguments.dart';
 
 class LoginPage extends StatefulWidget {
   static const routeName = '/login';
@@ -46,11 +38,9 @@ class _LoginPageState extends State<LoginPage> {
 
     try {
       var req = await _authAPI.login(email, password);
-      print(req.statusCode);
       if (req.statusCode == 200) {
         var token = jsonDecode(req.body);
         await SecureStorage().write('token', token);
-        print("token");
         if (!context.mounted) {
           return;
         }
@@ -93,7 +83,7 @@ class _LoginPageState extends State<LoginPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Sign in to your\nAccount',
+                      'Sign in to your account',
                     ),
                     SizedBox(
                       height: 6,

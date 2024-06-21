@@ -62,8 +62,8 @@ func newRouter(database database.Database, opts ...func(*router)) *chi.Mux {
 	userHandler := newUserHandler(database.UserRepo(), database.AvailableExpertRepo(), database.CallTrackerRepo())
 	authHandler := newAuthHandler(database.UserRepo(), database.OrganizationRepo())//, config.GetString(router.config, "TOKENSECRET", "tokenSecret"))
 	AvailableExpertHandler := newAvailableExpertHandler(database.AvailableExpertRepo(), database.UserRepo())
-    CallTrackerHandler := newCallTrackerHandler(database.CallTrackerRepo(), database.UserRepo())
-	ProjectHandler := newProjectHandler(database.ProjectRepo())
+    CallTrackerHandler := newCallTrackerHandler(database.CallTrackerRepo(), database.UserRepo(), database.AvailableExpertRepo())
+	ProjectHandler := newProjectHandler(database.ProjectRepo(), database.UserRepo())
 
 	// index
 	chiRouter.Handle("/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -73,6 +73,7 @@ func newRouter(database database.Database, opts ...func(*router)) *chi.Mux {
 	chiRouter.Group(func(r chi.Router) {
 		r.Post("/login", authHandler.login())
 		r.Post("/signup", authHandler.signup())
+		r.Post("/refresh", authHandler.refresh())
 		r.Post("/makeorg", organizationHandler.makeOrg())
 		r.Get("/users", userHandler.getUsers())
 		//r.Post("/logout", authHandler.logout())
@@ -92,7 +93,9 @@ func newRouter(database database.Database, opts ...func(*router)) *chi.Mux {
 		r.Post("/make-call", CallTrackerHandler.makeCallTracker())
 		r.Post("/manually-make-call", CallTrackerHandler.manuallyMakeCallTracker())
 		r.Get("/projects-list", ProjectHandler.getAllProjects())
+		r.Get("/angles", ProjectHandler.getAnglesByUserEmail())
 		r.Post("/make-project", ProjectHandler.makeProject())
+		r.Post("/update-project", ProjectHandler.updateProject())
 		r.Post("/signature", userHandler.makeSignature())
 		r.Delete("/experts/{expertID}", AvailableExpertHandler.deleteAvailableExpert())
 		r.Delete("/calls/{callTrackerID}", CallTrackerHandler.deleteCallTracker())

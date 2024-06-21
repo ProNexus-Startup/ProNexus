@@ -1,36 +1,14 @@
-/*
- * This file is part of wger Workout Manager <https://github.com/wger-project>.
- * Copyright (C) 2020, 2021 wger Team
- *
- * wger Workout Manager is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * wger Workout Manager is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
-
-import 'dart:ui';
-
 import 'package:flex_color_scheme/flex_color_scheme.dart';
 import 'package:flutter/material.dart';
 
-// Color scheme, please consult
-// * https://pub.dev/packages/flex_color_scheme
-// * https://rydmike.com/flexseedscheme/demo-v1/#/
-
-const Color wgerPrimaryColor = Color(0xff2a4c7d);
-const Color wgerPrimaryButtonColor = Color(0xff266dd3);
-const Color wgerPrimaryColorLight = Color(0xff94B2DB);
-const Color wgerSecondaryColor = Color(0xffe63946);
-const Color wgerSecondaryColorLight = Color(0xffF6B4BA);
-const Color wgerTertiaryColor = Color(0xFF6CA450);
+const Color primaryBlue = Color(0xff375dfb);
+const Color greenButtonColor = Color(0xff38c793);
+const Color lightGrey = Color(0xfff2f4f6);
+const Color darkGrey = Color(0xff999999);
+const Color lightGreyLight = Color(0xffF6B4BA);
+const Color mustardYellow = Color(0xFFffdd00);
+const Color offWhite = Color(0xffF2F4F6);
+const Color redColor = Color(0xfff97071);
 
 const FlexSubThemesData wgerSubThemeData = FlexSubThemesData(
   fabSchemeColor: SchemeColor.secondary,
@@ -42,7 +20,7 @@ const FlexSubThemesData wgerSubThemeData = FlexSubThemesData(
   navigationBarHeight: 56,
 );
 
-const String wgerDisplayFont = 'RobotoCondensed';
+const String mainFont = 'Inter';
 const List<FontVariation> displayFontBoldWeight = <FontVariation>[
   FontVariation('wght', 600)
 ];
@@ -52,76 +30,75 @@ const List<FontVariation> displayFontHeavyWeight = <FontVariation>[
 
 // Make a light ColorScheme from the seeds.
 final ColorScheme schemeLight = SeedColorScheme.fromSeeds(
-  primary: wgerPrimaryColor,
-  primaryKey: wgerPrimaryColor,
-  secondaryKey: wgerSecondaryColor,
-  secondary: wgerSecondaryColor,
-  tertiaryKey: wgerTertiaryColor,
+  primary: primaryBlue,
+  primaryKey: primaryBlue,
+  secondaryKey: offWhite,
+  secondary: offWhite,
+  tertiaryKey: lightGrey,
   brightness: Brightness.light,
   tones: FlexTones.vivid(Brightness.light),
 );
 
 // Make a dark ColorScheme from the seeds.
 final ColorScheme schemeDark = SeedColorScheme.fromSeeds(
-  // primary: wgerPrimaryColor,
-  primaryKey: wgerPrimaryColor,
-  secondaryKey: wgerSecondaryColor,
-  secondary: wgerSecondaryColor,
+  primaryKey: primaryBlue,
+  secondaryKey: lightGrey,
+  secondary: lightGrey,
   brightness: Brightness.dark,
   tones: FlexTones.vivid(Brightness.dark),
 );
 
 // Make a high contrast light ColorScheme from the seeds
 final ColorScheme schemeLightHc = SeedColorScheme.fromSeeds(
-  primaryKey: wgerPrimaryColor,
-  secondaryKey: wgerSecondaryColor,
+  primaryKey: primaryBlue,
+  secondaryKey: lightGrey,
   brightness: Brightness.light,
   tones: FlexTones.ultraContrast(Brightness.light),
 );
 
 // Make a ultra contrast dark ColorScheme from the seeds.
 final ColorScheme schemeDarkHc = SeedColorScheme.fromSeeds(
-  primaryKey: wgerPrimaryColor,
-  secondaryKey: wgerSecondaryColor,
+  primaryKey: primaryBlue,
+  secondaryKey: lightGrey,
   brightness: Brightness.dark,
   tones: FlexTones.ultraContrast(Brightness.dark),
 );
 
 const wgerTextTheme = TextTheme(
   displayLarge: TextStyle(
-    fontFamily: wgerDisplayFont,
+    fontFamily: mainFont,
     fontVariations: displayFontHeavyWeight,
   ),
   displayMedium: TextStyle(
-    fontFamily: wgerDisplayFont,
+    fontFamily: mainFont,
     fontVariations: displayFontHeavyWeight,
   ),
   displaySmall: TextStyle(
-    fontFamily: wgerDisplayFont,
+    fontFamily: mainFont,
     fontVariations: displayFontHeavyWeight,
   ),
   headlineLarge: TextStyle(
-    fontFamily: wgerDisplayFont,
+    fontFamily: mainFont,
     fontVariations: displayFontBoldWeight,
   ),
   headlineMedium: TextStyle(
-    fontFamily: wgerDisplayFont,
+    fontFamily: mainFont,
     fontVariations: displayFontBoldWeight,
   ),
   headlineSmall: TextStyle(
-    fontFamily: wgerDisplayFont,
+    fontFamily: mainFont,
     fontVariations: displayFontBoldWeight,
   ),
   titleLarge: TextStyle(
-    fontFamily: wgerDisplayFont,
+    fontFamily: mainFont,
     fontVariations: displayFontBoldWeight,
   ),
   titleMedium: TextStyle(
-    fontFamily: wgerDisplayFont,
+    fontFamily: mainFont,
     fontVariations: displayFontBoldWeight,
   ),
   titleSmall: TextStyle(
-    fontFamily: wgerDisplayFont,
+    fontFamily: mainFont,
     fontVariations: displayFontBoldWeight,
   ),
 );
@@ -132,6 +109,17 @@ final wgerLightTheme = FlexThemeData.light(
   appBarStyle: FlexAppBarStyle.primary,
   subThemesData: wgerSubThemeData,
   textTheme: wgerTextTheme,
+).copyWith(
+  elevatedButtonTheme: ElevatedButtonThemeData(
+    style: ElevatedButton.styleFrom(
+      foregroundColor: Colors.white, backgroundColor: primaryBlue, // Text color
+      padding: EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+      textStyle: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+    ),
+  ),
 );
 
 final wgerDarkTheme = FlexThemeData.dark(
@@ -139,6 +127,17 @@ final wgerDarkTheme = FlexThemeData.dark(
   useMaterial3: true,
   subThemesData: wgerSubThemeData,
   textTheme: wgerTextTheme,
+).copyWith(
+  elevatedButtonTheme: ElevatedButtonThemeData(
+    style: ElevatedButton.styleFrom(
+      foregroundColor: Colors.white, backgroundColor: primaryBlue, // Text color
+      padding: EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+      textStyle: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+    ),
+  ),
 );
 
 final wgerLightThemeHc = FlexThemeData.light(
@@ -147,6 +146,17 @@ final wgerLightThemeHc = FlexThemeData.light(
   appBarStyle: FlexAppBarStyle.primary,
   subThemesData: wgerSubThemeData,
   textTheme: wgerTextTheme,
+).copyWith(
+  elevatedButtonTheme: ElevatedButtonThemeData(
+    style: ElevatedButton.styleFrom(
+      foregroundColor: Colors.white, backgroundColor: primaryBlue, // Text color
+      padding: EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+      textStyle: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+    ),
+  ),
 );
 
 final wgerDarkThemeHc = FlexThemeData.dark(
@@ -154,4 +164,15 @@ final wgerDarkThemeHc = FlexThemeData.dark(
   useMaterial3: true,
   subThemesData: wgerSubThemeData,
   textTheme: wgerTextTheme,
+).copyWith(
+  elevatedButtonTheme: ElevatedButtonThemeData(
+    style: ElevatedButton.styleFrom(
+      foregroundColor: Colors.white, backgroundColor: primaryBlue, // Text color
+      padding: EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+      textStyle: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+    ),
+  ),
 );

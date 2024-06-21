@@ -13,6 +13,7 @@ import (
     "golang.org/x/crypto/bcrypt"
     "net/http"
     "github.com/google/uuid"
+    "strings"
 )
 
 type authHandler struct {
@@ -172,5 +173,44 @@ func (h authHandler) signup() http.HandlerFunc {
             "message": "user created successfully",
             "token": jwtToken, // Include the JWT token in the response
         })
+    }
+}
+
+func (h authHandler) refresh() http.HandlerFunc {
+    return func(w http.ResponseWriter, r *http.Request) {
+        token := r.Header.Get("Authorization")
+        if token == "" {
+            h.responder.writeError(w, fmt.Errorf("no Authorization header provided"))
+            return
+        }
+
+        token = strings.TrimPrefix(token, "Bearer ")
+
+        user, err := validateToken(token)
+        if err != nil {
+            h.responder.writeError(w, fmt.Errorf("invalid token: %v", err))
+            return
+        }
+
+        userFromDB, err := h.userRepo.FindByEmail(user.Email)
+        if errors.Is(err, errs.ErrNotFound) {
+            h.responder.writeError(w, errs.Unauthorized)
+            return
+        } else if err != nil {
+            h.responder.writeError(w, fmt.Errorf("error getting user from user repo: %v", err))
+            return
+        }
+
+        // Update the user information from the database
+        user = userFromDB
+
+        accessToken, err := newAccess(user)
+        if err != nil {
+            h.responder.writeError(w, fmt.Errorf("auth_handler.refresh: Error generating access JWT: %v", err))
+            return
+        }
+
+        // Send the response back to the client
+        h.responder.writeJSON(w, accessToken)
     }
 }

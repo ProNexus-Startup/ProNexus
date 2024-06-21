@@ -31,6 +31,15 @@ func (r *ProjectRepo) FindByOrganization(organizationID string) ([]models.Projec
     return results, nil
 }
 
+func (r *ProjectRepo) FindByID(id string) (models.Project, error) {
+    for _, project := range *r.projects {
+		if id == project.ID {
+			return project, nil
+		}
+	}
+	return models.Project{}, errs.NewNotFound("project not found")
+}
+
 func (r *ProjectRepo) Insert(project models.Project) error {
     if project.ID == "" {
         newUUID, err := uuid.NewUUID()
@@ -55,43 +64,65 @@ func (r *ProjectRepo) Delete(projectID string) error {
     return errs.NewNotFound("project not found")
 }
 
-
-/*
-func (r *ProjectRepo) Update(userFields models.User) error {
-    if userFields.ID == "" {
-        return fmt.Errorf("error: missing ID field in argument")
+func (r *ProjectRepo) Update(projectFields models.Project) error {
+    if projectFields.ID == "" {
+        return errs.NewNotFound("project not found")
     }
 
-    for i, user := range *r.users {
-        if user.ID == userFields.ID {
-            // Check and update each field if it has a non-zero value
-            if userFields.Email != "" {
-                (*r.users)[i].Email = userFields.Email
+    for i, project := range *r.projects {
+        if project.ID == projectFields.ID {
+            if projectFields.Name != "" {
+                (*r.projects)[i].Name = projectFields.Name
             }
-            if userFields.FullName != "" {
-                (*r.users)[i].FullName = userFields.FullName
+            if projectFields.OrganizationID != "" {
+                (*r.projects)[i].OrganizationID = projectFields.OrganizationID
             }
-            if userFields.Password != "" {
-                (*r.users)[i].Password = userFields.Password
+            if !projectFields.StartDate.IsZero() {
+                (*r.projects)[i].StartDate = projectFields.StartDate
             }
-            if userFields.OrganizationID != "" {
-                (*r.users)[i].OrganizationID = userFields.OrganizationID
+            if !projectFields.EndDate.IsZero() {
+                (*r.projects)[i].EndDate = projectFields.EndDate
             }
-            if userFields.ProjectID != "" {
-                (*r.users)[i].ProjectID = userFields.ProjectID
+            if projectFields.CallsCompleted != 0 {
+                (*r.projects)[i].CallsCompleted = projectFields.CallsCompleted
             }
-            if len(userFields.PastProjectIDs) > 0 {
-                (*r.users)[i].PastProjectIDs = userFields.PastProjectIDs
+            if projectFields.Status != "" {
+                (*r.projects)[i].Status = projectFields.Status
             }
-            if !userFields.SignedAt.IsZero() {
-                (*r.users)[i].SignedAt = userFields.SignedAt
+            if len(projectFields.Expenses) > 0 {
+                (*r.projects)[i].Expenses = projectFields.Expenses
             }
-            if userFields.Token != "" {
-                (*r.users)[i].Token = userFields.Token
+            if len(projectFields.Angles) > 0 {
+                (*r.projects)[i].Angles = projectFields.Angles
             }
-            // Add more fields as necessary
+            if projectFields.TargetCompany != "" {
+                (*r.projects)[i].TargetCompany = projectFields.TargetCompany
+            }
+            if len(projectFields.DoNotContact) > 0 {
+                (*r.projects)[i].DoNotContact = projectFields.DoNotContact
+            }
+            if len(projectFields.Regions) > 0 {
+                (*r.projects)[i].Regions = projectFields.Regions
+            }
+            if projectFields.Scope != "" {
+                (*r.projects)[i].Scope = projectFields.Scope
+            }
+            if projectFields.Type != "" {
+                (*r.projects)[i].Type = projectFields.Type
+            }
+            if projectFields.EstimatedCalls != 0 {
+                (*r.projects)[i].EstimatedCalls = projectFields.EstimatedCalls
+            }
+            if projectFields.BudgetCap != 0 {
+                (*r.projects)[i].BudgetCap = projectFields.BudgetCap
+            }
+            if projectFields.EmailBody != "" {
+                (*r.projects)[i].EmailBody = projectFields.EmailBody
+            }
+            if projectFields.EmailSubject != "" {
+                (*r.projects)[i].EmailSubject = projectFields.EmailSubject
+            }
         }
     }
     return nil
 }
-*/

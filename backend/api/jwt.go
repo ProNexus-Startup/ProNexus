@@ -79,3 +79,7 @@ func validateToken(tokenString string) (models.User, error) {
 		return noUser, fmt.Errorf("invalid token")
 	}
 }
+
+func generateNewToken(user models.User) (string, error) {
+    return newAccess(user)
+}

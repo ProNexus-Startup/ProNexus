@@ -3,14 +3,16 @@ import 'package:admin/utils/models/available_expert.dart';
 import 'package:admin/utils/models/call_tracker.dart';
 import 'package:admin/utils/models/project.dart';
 import 'package:admin/utils/models/user.dart';
+import 'package:admin/utils/persistence/secure_storage.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:http/http.dart' as http;
 
 class BaseAPI {
   static String api =
-      "http://localhost:8080"; //"pronexus-production.up.railway.app"; //"https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"
+      "http://localhost:8080"; //"https://pronexus-production.up.railway.app"
   Uri userPath = Uri.parse('$api/me');
   Uri usersPath = Uri.parse('$api/users');
+  Uri refreshPath = Uri.parse('$api/refresh');
   Uri loginPath = Uri.parse('$api/login');
   Uri logoutPath = Uri.parse("$api/logout");
   Uri makeOrgPath = Uri.parse("$api/makeorg");
@@ -23,6 +25,7 @@ class BaseAPI {
   Uri projectsPath = Uri.parse("$api/projects-list");
   Uri callsPath = Uri.parse("$api/calls-list");
   Uri updateUserProjectPath = Uri.parse("$api/update-user-project");
+  Uri updateProject = Uri.parse("$api/update-project");
 
   Map<String, String> headers = {
     "Content-Type": "application/json; charset=UTF-8"
@@ -37,6 +40,7 @@ class AuthAPI extends BaseAPI {
       'password': user.password,
       'organizationID': user.organizationId,
       'admin': user.admin,
+      'level': user.level,
     });
     http.Response response =
         await http.post(super.signupPath, headers: super.headers, body: body);
@@ -89,6 +93,10 @@ class AuthAPI extends BaseAPI {
     try {
       final response = await http
           .get(userPath, headers: {"Authorization": "Bearer ${token}"});
+
+      print(response.body);
+      print(response.statusCode);
+
       if (response.statusCode == 200) {
         User user = User.fromJson(json.decode(response.body));
         return user;
@@ -122,8 +130,11 @@ class AuthAPI extends BaseAPI {
 
   Future<List<AvailableExpert>> getExperts(String token) async {
     try {
-      final response = await http
-          .get(expertsPath, headers: {"Authorization": "Bearer ${token}"});
+      final response = await http.get(
+        expertsPath,
+        headers: {"Authorization": "Bearer $token"},
+      );
+
       if (response.statusCode == 200) {
         var decoded = json.decode(response.body);
 
@@ -170,13 +181,17 @@ class AuthAPI extends BaseAPI {
 
   Future<List<Project>> getProjects(String token) async {
     try {
-      final response = await http
-          .get(projectsPath, headers: {"Authorization": "Bearer ${token}"});
-      if (response.statusCode == 200) {
-        var decoded = json.decode(response.body);
+      final response = await http.get(
+        projectsPath,
+        headers: {"Authorization": "Bearer $token"},
+      );
 
-        List<Project> projects = List.from(decoded)
-            .map((projectJson) => Project.fromJson(projectJson))
+      if (response.statusCode == 200) {
+        var decoded = json.decode(response.body) as List<dynamic>;
+
+        List<Project> projects = decoded
+            .map((projectJson) =>
+                Project.fromJson(projectJson as Map<String, dynamic>))
             .toList();
 
         return projects;
@@ -232,31 +247,45 @@ class AuthAPI extends BaseAPI {
         },
         body: jsonEncode({
           'isSelected': callTracker.isSelected,
-          'expertId': callTracker.expertId,
           'name': callTracker.name,
           'projectId': callTracker.projectId,
           'favorite': callTracker.favorite,
-          'title': callTracker.title,
+          'title': callTracker.profession,
           'company': callTracker.company,
           'companyType': callTracker.companyType,
-          'yearsAtCompany': callTracker.yearsAtCompany,
+          'startDate': callTracker.startDate!
+                  .toIso8601String()
+                  .replaceFirst(RegExp(r'\.\d+'), '') +
+              'Z',
           'description': callTracker.description,
           'geography': callTracker.geography,
           'angle': callTracker.angle,
           'status': callTracker.status,
-          'AIAssessment': callTracker.AIAssessment,
+          'aiAssessment': callTracker.aiAssessment,
           'comments': callTracker.comments,
-          'availability': callTracker.availability,
+          'availability': callTracker.availabilities,
           'expertNetworkName': callTracker.expertNetworkName,
           'cost': callTracker.cost,
-          'screeningQuestions': callTracker.screeningQuestions,
+          'screeningQuestions': callTracker.screeningQuestionsAndAnswers,
           'addedExpertBy': callTracker.addedExpertBy,
-          'dateAddedExpert': callTracker.dateAddedExpert.toIso8601String(),
+          'dateAddedExpert': callTracker.dateAddedExpert!
+                  .toIso8601String()
+                  .replaceFirst(RegExp(r'\.\d+'), '') +
+              'Z',
           'addedCallBy': callTracker.addedCallBy,
-          'dateAddedCall': callTracker.dateAddedCall.toIso8601String(),
+          'dateAddedCall': callTracker.dateAddedCall!
+                  .toIso8601String()
+                  .replaceFirst(RegExp(r'\.\d+'), '') +
+              'Z',
           'inviteSent': callTracker.inviteSent,
-          'meetingStartDate': callTracker.meetingStartDate.toIso8601String(),
-          'meetingEndDate': callTracker.meetingEndDate.toIso8601String(),
+          'meetingStartDate': callTracker.meetingStartDate!
+                  .toIso8601String()
+                  .replaceFirst(RegExp(r'\.\d+'), '') +
+              'Z',
+          'meetingEndDate': callTracker.meetingEndDate!
+                  .toIso8601String()
+                  .replaceFirst(RegExp(r'\.\d+'), '') +
+              'Z',
           'paidStatus': callTracker.paidStatus,
           'rating': callTracker.rating,
         }),
@@ -273,22 +302,70 @@ class AuthAPI extends BaseAPI {
   }
 
   Future<void> makeProject(String token, Project project) async {
-    try {
-      var response = await http.post(
-        makeProjectPath,
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
-        body: jsonEncode(project.toJson()),
-      );
-      if (response.statusCode == 200) {
-        print('Project created successfully');
-      } else {
-        throw Exception('Failed to create project: ${response.body}');
-      }
-    } catch (e) {
-      print('Error creating project: $e');
+    Map<String, dynamic> projectJson = project.toJson();
+    String projectJsonString = jsonEncode(projectJson);
+
+    print("Sending JSON: $projectJsonString");
+
+    final response = await http.post(
+      makeProjectPath,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: projectJsonString, // Directly encode the project data
+    );
+
+    if (response.statusCode == 200) {
+      print('Project created successfully');
+    } else {
+      print('Failed to create project: ${response.body}');
+    }
+  }
+
+  Future<void> updateProjectExpenses(
+      String token, String projectId, List<Expense> expenses) async {
+    final body = jsonEncode({
+      'projectId': projectId,
+      'expenses': expenses.map((e) => e.toJson()).toList(),
+    });
+
+    final response = await http.post(
+      updateProject,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: body,
+    );
+
+    if (response.statusCode == 200) {
+      print('Project updated successfully');
+    } else {
+      print('Failed to update project: ${response.statusCode}');
+    }
+  }
+
+  Future<void> updateProjectAngles(
+      String token, String projectId, List<Angle> angles) async {
+    final body = jsonEncode({
+      'projectId': projectId,
+      'angle': angles.map((e) => e.toJson()).toList(),
+    });
+
+    final response = await http.post(
+      updateProject,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: body,
+    );
+
+    if (response.statusCode == 200) {
+      print('Project updated successfully');
+    } else {
+      print('Failed to update project: ${response.statusCode}');
     }
   }
 
@@ -324,6 +401,27 @@ class AuthAPI extends BaseAPI {
       }
     } catch (e) {
       print('An error occurred: $e');
+    }
+  }
+
+  Future<void> refreshToken(String token) async {
+    final response = await http.post(
+      refreshPath,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      String newToken = jsonDecode(response.body);
+      SecureStorage secureStorage = SecureStorage();
+
+      await secureStorage.write('token', newToken);
+    } else {
+      // Handle error response
+      print('Failed to refresh token: ${response.statusCode}');
+      return null;
     }
   }
 

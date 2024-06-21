@@ -1,12 +1,14 @@
-import 'package:admin/pages/available_experts_dashboard.dart';
-import 'package:admin/pages/components/top_menu.dart';
-import 'package:admin/utils/models/project.dart';
-import 'package:admin/utils/BaseAPI.dart';
-import 'package:admin/utils/global_bloc.dart';
-import 'package:admin/utils/models/user.dart';
-import 'package:admin/utils/persistence/secure_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+import 'package:admin/pages/available_experts_page.dart';
+import 'package:admin/pages/components/header.dart';
+import 'package:admin/utils/models/project.dart';
+import 'package:admin/utils/BaseAPI.dart';
+import 'package:admin/utils/persistence/global_bloc.dart';
+import 'package:admin/utils/models/user.dart';
+import 'package:admin/utils/persistence/secure_storage.dart';
 
 class AdminPage extends StatefulWidget {
   final String token;
@@ -26,6 +28,12 @@ class _AdminPageState extends State<AdminPage> {
   void initState() {
     super.initState();
     _loadData();
+    _saveContext();
+  }
+
+  Future<void> _saveContext() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs.setString('last_route', AdminPage.routeName);
   }
 
   Future<void> _loadData() async {
@@ -34,123 +42,212 @@ class _AdminPageState extends State<AdminPage> {
     globalBloc.onUserLogin(widget.token);
   }
 
-  void _showAddProjectDialog(BuildContext context, organizationId) {
-    TextEditingController projectNameController = TextEditingController();
-    DateTime? startDate; // Changed to DateTime to store date object
-    TextEditingController targetController = TextEditingController();
-    String? selectedStatus; // This will hold the selected status
+  Future<void> _sendProject(Project project) async {
+    await _authAPI.makeProject(widget.token, project);
+    await _loadData(); // Refresh data after sending the project
+  }
 
-    // Define the statuses available for selection
-    List<String> statuses = ['Open', 'In Progress', 'Complete'];
+  @override
+  Widget build(BuildContext context) {
+    final GlobalBloc globalBloc = Provider.of<GlobalBloc>(context);
+    List<Project> projectList = globalBloc.projectList;
+    List<User> userList = globalBloc.userList;
 
-    // Function to show DatePicker
-    Future<void> _selectStartDate(BuildContext context) async {
-      final DateTime? picked = await showDatePicker(
-        context: context,
-        initialDate: startDate ??
-            DateTime.now(), // Use current date if no date has been picked
-        firstDate: DateTime(2000), // Adjust based on your requirement
-        lastDate: DateTime(2025),
-      );
-      if (picked != null && picked != startDate) {
-        // Update the state with the new selected date
-        (context as Element).markNeedsBuild();
-        startDate = picked;
-      }
-    }
-
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return StatefulBuilder(
-          builder: (context, setState) {
-            return AlertDialog(
-              title: Text('Add New Project'),
-              content: SingleChildScrollView(
-                child: ListBody(
-                  children: <Widget>[
-                    TextField(
-                      controller: projectNameController,
-                      decoration: InputDecoration(hintText: "Project Name"),
-                    ),
-                    InkWell(
-                      onTap: () {
-                        _selectStartDate(context).then((_) {
-                          // Update UI after date selection
-                          setState(() {});
-                        });
-                      },
-                      child: Container(
-                        width: double.infinity,
-                        height: 60,
-                        alignment: Alignment.centerLeft,
-                        decoration: BoxDecoration(
-                            border:
-                                Border(bottom: BorderSide(color: Colors.grey))),
-                        child: Text(
-                          startDate == null
-                              ? "Select Start Date"
-                              : "${startDate!.month}/${startDate!.day}/${startDate!.year}",
-                          style: TextStyle(fontSize: 16, color: Colors.black54),
-                        ),
-                      ),
-                    ),
-                    TextField(
-                      controller: targetController,
-                      decoration: InputDecoration(hintText: "Target"),
-                    ),
-                    DropdownButton<String>(
-                      isExpanded: true,
-                      value: selectedStatus,
-                      hint: Text("Select Status"),
-                      onChanged: (String? newValue) {
-                        setState(() => selectedStatus = newValue);
-                      },
-                      items: statuses
-                          .map<DropdownMenuItem<String>>((String value) {
-                        return DropdownMenuItem<String>(
-                          value: value,
-                          child: Text(value),
-                        );
-                      }).toList(),
-                    ),
-                  ],
-                ),
+    return Scaffold(
+        appBar: PreferredSize(
+          preferredSize: Size.fromHeight(100),
+          child: TopMenu(),
+        ),
+        body: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'All projects',
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
               ),
-              actions: <Widget>[
-                TextButton(
-                  child: Text('Cancel'),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
+              SizedBox(height: 16),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Container(),
+                  ToggleButtons(
+                    children: <Widget>[
+                      Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 16),
+                        child: Text('Users'),
+                      ),
+                      Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 16),
+                        child: Text('Projects'),
+                      ),
+                    ],
+                    isSelected: _isSelected,
+                    onPressed: (int index) {
+                      setState(() {
+                        for (int i = 0; i < _isSelected.length; i++) {
+                          _isSelected[i] = i == index;
+                        }
+                      });
+                    },
+                  ),
+                  Text(
+                    'ADMIN VIEW',
+                    style: TextStyle(
+                        color: Colors.grey, fontWeight: FontWeight.bold),
+                  ),
+                ],
+              ),
+              SizedBox(height: 16),
+              Expanded(
+                child: Align(
+                    alignment: Alignment.topCenter,
+                    child: _isSelected[1]
+                        ? ProjectView(
+                            projectList: projectList,
+                            token: widget.token,
+                            globalBloc: globalBloc,
+                          )
+                        : UserView(
+                            userList: userList,
+                            token: widget.token,
+                            orgId: globalBloc.currentUser.organizationId)),
+              ),
+            ],
+          ),
+        ),
+        floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+        floatingActionButton: _isSelected[1]
+            ? ElevatedButton(
+                onPressed: () async {
+                  final Project project = Project.defaultProject(
+                      globalBloc.currentUser.organizationId);
+                  await _sendProject(project); // Send project and refresh data
+                },
+                style: ElevatedButton.styleFrom(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                 ),
-                TextButton(
-                  child: Text('Add'),
-                  onPressed: () {
-                    Project project = Project(
-                        name: projectNameController.text,
-                        startDate: startDate!,
-                        organizationId: organizationId,
-                        target: targetController.text,
-                        callsCompleted: 0,
-                        status: selectedStatus.toString());
-                    _authAPI.makeProject(widget.token, project);
-                    _loadData();
-                    Navigator.of(context).pop();
-                  },
-                ),
-              ],
-            );
-          },
-        );
-      },
+                child:
+                    Text('+ Add new project', style: TextStyle(fontSize: 16)),
+              )
+            : null);
+  }
+}
+
+class ProjectView extends StatelessWidget {
+  final List<Project> projectList;
+  final String token;
+  final GlobalBloc globalBloc;
+
+  const ProjectView({
+    required this.projectList,
+    required this.token,
+    required this.globalBloc,
+    Key? key,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: DataTable(
+        headingTextStyle: TextStyle(
+          fontWeight: FontWeight.bold,
+          color: Colors.black,
+        ),
+        columns: [
+          DataColumn(label: Text('Project ID')),
+          DataColumn(label: Text('Name')),
+          DataColumn(label: Text('Calls Completed')),
+          DataColumn(label: Text('Target')),
+          DataColumn(label: Text('Start Date')),
+          DataColumn(label: Text('End Date')),
+        ],
+        rows: projectList.map((project) {
+          return DataRow(
+            cells: [
+              DataCell(
+                Text(project.projectId ?? "Missing ID"),
+                onTap: () async {
+                  _navigateToDetailPage(context, project);
+                },
+              ),
+              DataCell(
+                Text(project.name),
+                onTap: () async {
+                  _navigateToDetailPage(context, project);
+                },
+              ),
+              DataCell(
+                Text(project.callsCompleted.toString()),
+                onTap: () async {
+                  _navigateToDetailPage(context, project);
+                },
+              ),
+              DataCell(
+                Text(project.targetCompany),
+                onTap: () async {
+                  _navigateToDetailPage(context, project);
+                },
+              ),
+              DataCell(
+                Text(project.startDate.toString()),
+                onTap: () async {
+                  _navigateToDetailPage(context, project);
+                },
+              ),
+              DataCell(
+                Text(project.endDate.toString()),
+                onTap: () async {
+                  _navigateToDetailPage(context, project);
+                },
+              ),
+            ],
+          );
+        }).toList(),
+      ),
     );
   }
 
-  void _showAddUserDialog(BuildContext context, orgId) {
+  void _navigateToDetailPage(BuildContext context, Project project) async {
+    SecureStorage secureStorage = SecureStorage();
+    globalBloc.setProjectIdFilter(project.projectId!);
+    await secureStorage.write('projectId', project.projectId!);
+
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs.setString('last_route', AvailableExpertsDashboard.routeName);
+
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => AvailableExpertsDashboard(token: token),
+      ),
+    );
+  }
+}
+
+class UserView extends StatelessWidget {
+  final List<User> userList;
+  final String token;
+  final String orgId;
+
+  UserView({
+    required this.userList,
+    required this.token,
+    required this.orgId,
+    Key? key,
+  }) : super(key: key);
+
+  final AuthAPI _authAPI = AuthAPI();
+
+  void _showAddUserDialog(BuildContext context, String orgId) {
     TextEditingController emailController = TextEditingController();
     TextEditingController fullNameController = TextEditingController();
     TextEditingController passwordController = TextEditingController();
+    TextEditingController levelController = TextEditingController();
     bool isAdmin = false;
 
     showDialog(
@@ -166,6 +263,10 @@ class _AdminPageState extends State<AdminPage> {
                     TextField(
                       controller: emailController,
                       decoration: InputDecoration(hintText: "Email"),
+                    ),
+                    TextField(
+                      controller: levelController,
+                      decoration: InputDecoration(hintText: "Level at Company"),
                     ),
                     TextField(
                       controller: fullNameController,
@@ -195,15 +296,25 @@ class _AdminPageState extends State<AdminPage> {
                 TextButton(
                   child: Text('Add'),
                   onPressed: () async {
+                    final GlobalBloc globalBloc =
+                        Provider.of<GlobalBloc>(context, listen: false);
+
                     User user = User(
-                        admin: isAdmin,
-                        email: emailController.text,
-                        fullName: fullNameController.text,
-                        password: passwordController.text,
-                        organizationId: orgId);
-                    var response = await _authAPI.signup(user);
-                    print(response);
-                    _loadData();
+                      admin: isAdmin,
+                      email: emailController.text,
+                      fullName: fullNameController.text,
+                      password: passwordController.text,
+                      level: levelController.text,
+                      organizationId: orgId,
+                      currentProject: globalBloc.benchProject,
+                      pastProjects: [
+                        Proj(
+                            projectId: globalBloc.benchProject,
+                            start: DateTime(1, 1))
+                      ],
+                    );
+                    await _authAPI.signup(user);
+                    await _loadData(context); // Pass context here
                     Navigator.of(context).pop();
                   },
                 ),
@@ -215,184 +326,64 @@ class _AdminPageState extends State<AdminPage> {
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final GlobalBloc globalBloc = Provider.of<GlobalBloc>(context);
-    List<Project> projectList = globalBloc.projectList;
-    List<User> userList = globalBloc.userList;
-
-    return Scaffold(
-      appBar: PreferredSize(
-          preferredSize: Size.fromHeight(100), // Set the height of the app bar
-          child: TopMenu()),
-      body: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child:
-              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(
-              'All projects',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-            ),
-            SizedBox(height: 16),
-            Row(
-              mainAxisAlignment:
-                  MainAxisAlignment.spaceBetween, // Adjust alignment
-              children: [
-                Container(), // Placeholder to maintain the space on the left
-                ToggleButtons(
-                  children: <Widget>[
-                    Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 16),
-                      child: Text('Users'),
-                    ),
-                    Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 16),
-                      child: Text('Projects'),
-                    ),
-                  ],
-                  isSelected: _isSelected,
-                  onPressed: (int index) {
-                    setState(() {
-                      // This will make only the tapped button selected
-                      for (int i = 0; i < _isSelected.length; i++) {
-                        _isSelected[i] = i == index;
-                      }
-                    });
-                  },
-                ),
-                Text(
-                  'ADMIN VIEW',
-                  style: TextStyle(
-                      color: Colors.grey, fontWeight: FontWeight.bold),
-                ),
-              ],
-            ),
-            SizedBox(height: 16),
-            if (_isSelected[1])
-              ProjectView(
-                projectList: projectList,
-                token: widget.token,
-                globalBloc: globalBloc,
-              ),
-            if (!_isSelected[1]) UserView(userList: userList),
-          ])),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-      floatingActionButton: _isSelected[1]
-          ? ElevatedButton(
-              onPressed: () {
-                _showAddProjectDialog(
-                    context, globalBloc.currentUser.organizationId);
-              },
-              style: ElevatedButton.styleFrom(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-              ),
-              child: Text('+ Add new project', style: TextStyle(fontSize: 16)),
-            )
-          : ElevatedButton(
-              onPressed: () => _showAddUserDialog(
-                  context, globalBloc.currentUser.organizationId),
-              style: ElevatedButton.styleFrom(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-              ),
-              child: Text('+ Add new user', style: TextStyle(fontSize: 16)),
-            ),
-    );
+  Future<void> _loadData(BuildContext context) async {
+    final GlobalBloc globalBloc =
+        Provider.of<GlobalBloc>(context, listen: false);
+    globalBloc.onUserLogin(token);
   }
-}
-
-class ProjectView extends StatelessWidget {
-  final List<Project> projectList;
-  final String token;
-  final GlobalBloc globalBloc;
-
-  const ProjectView({
-    required this.projectList,
-    required this.token,
-    required this.globalBloc,
-    Key? key,
-  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return Expanded(
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: DataTable(
-          columns: [
-            DataColumn(label: Text('Project ID')),
-            DataColumn(label: Text('Name')),
-            DataColumn(label: Text('Calls Completed')),
-            DataColumn(label: Text('Target')),
-            DataColumn(label: Text('Start Date')),
-            DataColumn(label: Text('End Date')),
-          ],
-          rows: projectList.map((project) {
-            return DataRow(
-              cells: [
-                DataCell(Text(project.projectId ?? "Missing ID")),
-                DataCell(Text(project.name)),
-                DataCell(Text(project.callsCompleted.toString())),
-                DataCell(Text(project.target)),
-                DataCell(Text(project.startDate.toString())),
-                DataCell(Text(project.endDate.toString())),
-              ],
-              onSelectChanged: (bool? selected) async {
-                SecureStorage secureStorage = SecureStorage();
-                if (selected != null && selected) {
-                  globalBloc.setProjectIdFilter(project.projectId!);
-                  await secureStorage.write('projectId', project.projectId!);
-
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (context) =>
-                          AvailableExpertsDashboard(token: token),
-                    ),
-                  );
-                }
-              },
-            );
-          }).toList(),
-        ),
-      ),
-    );
-  }
-}
-
-class UserView extends StatelessWidget {
-  final List<User> userList;
-
-  const UserView({
-    required this.userList,
-    Key? key,
-  }) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Expanded(
-        child: SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: DataTable(
-        columns: const [
-          DataColumn(label: Text('User ID')),
-          DataColumn(label: Text('Name')),
-          DataColumn(label: Text('Email')),
-          DataColumn(label: Text('Current Project')),
-        ],
-        rows: userList
-            .map((user) => DataRow(cells: [
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: DataTable(
+            headingTextStyle: const TextStyle(
+              fontWeight: FontWeight.bold,
+              color: Colors.black,
+            ),
+            columns: const [
+              DataColumn(label: Text('User ID')),
+              DataColumn(label: Text('Name')),
+              DataColumn(label: Text('Email')),
+              DataColumn(label: Text('Rank')),
+              DataColumn(label: Text('Status')),
+              DataColumn(label: Text('Last login')),
+              DataColumn(label: Text('Number of projects')),
+            ],
+            rows: userList.map((user) {
+              return DataRow(
+                cells: [
                   DataCell(Text(user.userId ?? '')),
                   DataCell(Text(user.fullName)),
                   DataCell(Text(user.email)),
-                  DataCell(Text(user.projectId ?? ''))
-                ]))
-            .toList(),
-      ),
-    ));
+                  DataCell(Text(user.level)),
+                  DataCell(Text('Active')), // Example Status
+                  DataCell(Text('4/2/24')), // Example Last login
+                  DataCell(
+                      Text((user.pastProjects.toSet().length - 1).toString())),
+                ],
+              );
+            }).toList(),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.only(left: 16.0, top: 8.0),
+          child: TextButton.icon(
+            onPressed: () {
+              _showAddUserDialog(context, orgId);
+            },
+            icon: const Icon(Icons.add),
+            label: const Text('Add new user'),
+            style: TextButton.styleFrom(
+              padding: EdgeInsets.zero,
+              alignment: Alignment.centerLeft,
+            ),
+          ),
+        ),
+      ],
+    );
   }
 }

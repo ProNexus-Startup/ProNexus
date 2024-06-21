@@ -5,7 +5,7 @@ import 'package:admin/utils/models/user.dart';
 import 'package:flutter/material.dart';
 //import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import '../utils/global_bloc.dart';
+import '../utils/persistence/global_bloc.dart';
 import '../utils/persistence/screen_arguments.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -33,17 +33,15 @@ class _UserRegisterPageState extends State<UserRegisterPage> {
   final storage = FlutterSecureStorage();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   TextEditingController usernameController = TextEditingController();
-  //TextEditingController lastNameController = TextEditingController();
   TextEditingController emailController = TextEditingController();
+  TextEditingController levelController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
   TextEditingController confirmPasswordController = TextEditingController();
-  //TextEditingController phoneController = TextEditingController();
 
   FocusNode confirmFocusNode = FocusNode();
 
   bool isObscure = true;
   bool isConfirmPasswordObscure = true;
-
   Future<void> handleRegistration() async {
     // First, validate the form
     if (_formKey.currentState?.validate() ?? false) {
@@ -51,13 +49,20 @@ class _UserRegisterPageState extends State<UserRegisterPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Checking email availability...')),
       );
-      print(widget.token);
+      final GlobalBloc globalBloc =
+          Provider.of<GlobalBloc>(context, listen: false);
+
       User user = User(
+          level: levelController.text,
           email: emailController.text,
           fullName: usernameController.text,
           password: passwordController.text,
           organizationId: widget.token,
-          admin: true);
+          admin: true,
+          currentProject: globalBloc.benchProject,
+          pastProjects: [
+            Proj(projectId: globalBloc.benchProject, start: DateTime(1, 1))
+          ]);
       // Use the text property to get the string value from the controllers
       var req = await _authAPI.signup(user);
       print(req.statusCode);
@@ -90,13 +95,19 @@ class _UserRegisterPageState extends State<UserRegisterPage> {
             }
             Navigator.pushNamed(context, SplashPage.routeName,
                 arguments: ScreenArguments(token));
-            const SnackBar(content: Text('Email succesfully registered.'));
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Email successfully registered.')),
+            );
           } else {
-            const SnackBar(content: Text('Problem registering.'));
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Problem registering.')),
+            );
           }
         } catch (e) {
           print(e);
-          const SnackBar(content: Text('Problem registering.'));
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Problem registering.')),
+          );
         }
       } else {
         if (!context.mounted) {
@@ -203,6 +214,21 @@ class _UserRegisterPageState extends State<UserRegisterPage> {
                               : 'Invalid Email Address';
                     },
                     controller: emailController,
+                  ),
+                  AppTextFormField(
+                    labelText: 'Level',
+                    autofocus: true,
+                    keyboardType: TextInputType.name,
+                    textInputAction: TextInputAction.next,
+                    onChanged: (value) => _formKey.currentState?.validate(),
+                    validator: (value) {
+                      return value!.isEmpty
+                          ? 'Please, Enter Company Title'
+                          : value.length < 4
+                              ? 'Invalid Name'
+                              : null;
+                    },
+                    controller: levelController,
                   ),
                   /*AppTextFormField(
                     labelText: 'Phone as (xxx) xxx-xxxx',
