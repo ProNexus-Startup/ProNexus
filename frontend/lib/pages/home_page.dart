@@ -1,3 +1,4 @@
+import 'package:admin/utils/formatting/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -187,7 +188,7 @@ class _HomePageState extends State<HomePage> {
   Color getStatusColor(String status) {
     if (status == 'Open') return Colors.green;
     if (status == 'Closed') return Colors.grey;
-    return Colors.blue;
+    return primaryBlue;
   }
 
   @override

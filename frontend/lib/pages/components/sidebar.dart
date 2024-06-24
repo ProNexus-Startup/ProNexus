@@ -2,7 +2,6 @@ import 'package:admin/utils/formatting/app_theme.dart';
 import 'package:admin/utils/models/expert_filter_model.dart';
 import 'package:admin/utils/persistence/global_bloc.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
 class Sidebar extends StatefulWidget {
@@ -35,7 +34,6 @@ class _SidebarState extends State<Sidebar> {
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
                     color: Colors.black,
-                    fontFamily: GoogleFonts.epilogue().fontFamily,
                   ),
                 ),
                 const Divider(),
@@ -66,7 +64,6 @@ class _SidebarState extends State<Sidebar> {
                             style: TextStyle(
                               fontSize: 16,
                               color: Colors.black,
-                              fontFamily: GoogleFonts.epilogue().fontFamily,
                             ),
                           ),
                         ),
@@ -77,7 +74,6 @@ class _SidebarState extends State<Sidebar> {
                           style: TextStyle(
                             fontSize: 16,
                             color: Colors.black,
-                            fontFamily: GoogleFonts.epilogue().fontFamily,
                           ),
                         ),
                       const SizedBox(width: 20),

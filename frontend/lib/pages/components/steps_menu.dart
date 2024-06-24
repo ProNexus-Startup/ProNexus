@@ -1,3 +1,4 @@
+import 'package:admin/utils/formatting/app_theme.dart';
 import 'package:flutter/material.dart';
 
 class StepperLayout extends StatefulWidget {
@@ -56,7 +57,7 @@ class _StepperLayoutState extends State<StepperLayout> {
               child: Row(
                 children: [
                   CircleAvatar(
-                    backgroundColor: isSelected ? Colors.blue : Colors.grey,
+                    backgroundColor: isSelected ? primaryBlue : Colors.grey,
                     radius: 10,
                     child: Text(
                       '${index + 1}',

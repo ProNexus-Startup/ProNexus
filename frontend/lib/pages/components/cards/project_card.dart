@@ -1,4 +1,5 @@
-import 'package:admin/pages/available_experts_page.dart';
+//import 'package:admin/pages/available_experts_page.dart';
+import 'package:admin/utils/formatting/app_theme.dart';
 import 'package:admin/utils/persistence/global_bloc.dart';
 import 'package:admin/utils/models/project.dart';
 import 'package:admin/utils/persistence/secure_storage.dart';
@@ -29,13 +30,13 @@ class ProjectTile extends StatelessWidget {
         await secureStorage.write('projectId', project.projectId!);
 
         SharedPreferences prefs = await SharedPreferences.getInstance();
-        prefs.setString('last_route', AvailableExpertsDashboard.routeName);
+        //prefs.setString('last_route', AvailableExpertsDashboard.routeName);
 
-        Navigator.of(context).push(
+        /*Navigator.of(context).push(
           MaterialPageRoute(
             builder: (context) => AvailableExpertsDashboard(token: token),
           ),
-        );
+        );*/
       },
       child: Card(
         child: ListTile(
@@ -51,11 +52,11 @@ class ProjectTile extends StatelessWidget {
                   // Define colors based on project status
                   switch (project.status) {
                     case 'Open':
-                      return Colors.green; // Green for Open
+                      return greenButtonColor; // Green for Open
                     case 'In Progress':
-                      return Colors.orange; // Orange for In Progress
+                      return Colors.amber; // Orange for In Progress
                     case 'Complete':
-                      return Colors.blue; // Blue for Complete
+                      return primaryBlue; // Blue for Complete
                     default:
                       return Colors
                           .grey; // Default color for unspecified or missing status

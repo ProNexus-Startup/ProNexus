@@ -105,8 +105,7 @@ class TopMenu extends StatelessWidget {
                 showContactInfoPopup(context);
               },
               label: const Text('Message us', style: customStyle),
-              icon: Image.asset('assets/icons/chat_icon.png',
-                  height: 24, width: 24)),
+              icon: Image.asset('icons/chat_icon.png', height: 24, width: 24)),
           TextButton.icon(
               onPressed: () {
                 _logout(context);
@@ -132,7 +131,7 @@ class TopMenu extends StatelessWidget {
               children: <Widget>[
                 ContactInfo(
                   name: 'Tom, CEO',
-                  phone: '111-111-1111',
+                  phone: '330-328-0223',
                   message: 'Message if you have general product questions',
                   email: 'tommyers330@gmail.com',
                 ),
@@ -205,7 +204,7 @@ class ContactInfo extends StatelessWidget {
               },
               child: Text(
                 email,
-                style: TextStyle(fontSize: 16, color: Colors.blue),
+                style: TextStyle(fontSize: 16, color: primaryBlue),
               ),
             ),
           ],

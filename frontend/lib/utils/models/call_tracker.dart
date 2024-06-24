@@ -4,11 +4,11 @@ class CallTracker {
   bool isSelected;
   bool favorite;
   String id;
-  String? name;
-  String? projectId;
-  String? organizationId;
-  String? profession;
-  String? company;
+  String name;
+  String projectId;
+  String organizationId;
+  String profession;
+  String company;
   String? companyType;
   DateTime? startDate;
   String? description;
@@ -38,12 +38,12 @@ class CallTracker {
   CallTracker({
     this.isSelected = false,
     required this.id,
-    this.name,
-    this.projectId,
+    required this.name,
+    required this.projectId,
     this.favorite = false,
-    this.organizationId,
-    this.profession,
-    this.company,
+    required this.organizationId,
+    required this.profession,
+    required this.company,
     this.companyType,
     this.startDate,
     this.description,

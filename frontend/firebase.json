@@ -1,1 +1,13 @@
-{"hosting":{"source":".","ignore":["firebase.json","**/.*","**/node_modules/**"],"frameworksBackend":{"region":"us-east1"}},"flutter":{"platforms":{"android":{"default":{"projectId":"pronexus-73107","appId":"1:18849604537:android:ccd5e3b391122d5712cc68","fileOutput":"android/app/google-services.json"}},"dart":{"lib/firebase_options.dart":{"projectId":"pronexus-73107","configurations":{"android":"1:18849604537:android:ccd5e3b391122d5712cc68","ios":"1:18849604537:ios:63b486eaf30612e912cc68","macos":"1:18849604537:ios:63b486eaf30612e912cc68","web":"1:18849604537:web:08e8f122470158dc12cc68","windows":"1:18849604537:web:8bc4e5e48b6eb59512cc68"}}}}}}
+{
+  "hosting": {
+    "source": ".",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "frameworksBackend": {
+      "region": "us-east1"
+    }
+  }
+}

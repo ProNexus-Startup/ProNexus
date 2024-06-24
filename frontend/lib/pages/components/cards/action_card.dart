@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 class ActionCard extends StatelessWidget {
   const ActionCard(
@@ -40,7 +39,6 @@ class ActionCard extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 14,
                     color: foregroundColor ?? Colors.black,
-                    fontFamily: GoogleFonts.rubik().fontFamily,
                   ),
                 ),
           const SizedBox(width: 10),

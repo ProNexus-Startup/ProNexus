@@ -1,5 +1,6 @@
 import 'package:admin/pages/components/header.dart';
 import 'package:admin/pages/components/sub_menu.dart';
+import 'package:admin/utils/formatting/app_theme.dart';
 import 'package:admin/utils/models/available_expert.dart';
 import 'package:admin/utils/models/call_tracker.dart';
 import 'package:admin/utils/persistence/global_bloc.dart';
@@ -104,11 +105,11 @@ class _ExpertSpecificPageState extends State<ExpertSpecificPage> {
 
   Color _getMatchColor(int matchPercentage) {
     if (matchPercentage <= 50) {
-      return Colors.red;
+      return redColor;
     } else if (matchPercentage <= 75) {
-      return Colors.yellow;
+      return mustardYellow;
     } else {
-      return Colors.green;
+      return greenButtonColor;
     }
   }
 
@@ -184,7 +185,7 @@ class _ExpertSpecificPageState extends State<ExpertSpecificPage> {
                                                   expert.linkedInLink ?? '');
                                             },
                                             child: Image.asset(
-                                              'icons/linkedin.webp', // Add the path to your LinkedIn logo
+                                              'images/linkedin.webp', // Add the path to your LinkedIn logo
                                               width: 24,
                                               height: 24,
                                             ),

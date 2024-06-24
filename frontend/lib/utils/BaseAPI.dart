@@ -8,8 +8,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:http/http.dart' as http;
 
 class BaseAPI {
-  static String api =
-      "http://localhost:8080"; //"https://pronexus-production.up.railway.app"
+  static String api = "https://pronexus-production.up.railway.app";
   Uri userPath = Uri.parse('$api/me');
   Uri usersPath = Uri.parse('$api/users');
   Uri refreshPath = Uri.parse('$api/refresh');

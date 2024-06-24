@@ -21,13 +21,25 @@ class DefaultFirebaseOptions {
     }
     switch (defaultTargetPlatform) {
       case TargetPlatform.android:
-        return android;
+        throw UnsupportedError(
+          'DefaultFirebaseOptions have not been configured for android - '
+          'you can reconfigure this by running the FlutterFire CLI again.',
+        );
       case TargetPlatform.iOS:
-        return ios;
+        throw UnsupportedError(
+          'DefaultFirebaseOptions have not been configured for ios - '
+          'you can reconfigure this by running the FlutterFire CLI again.',
+        );
       case TargetPlatform.macOS:
-        return macos;
+        throw UnsupportedError(
+          'DefaultFirebaseOptions have not been configured for macos - '
+          'you can reconfigure this by running the FlutterFire CLI again.',
+        );
       case TargetPlatform.windows:
-        return windows;
+        throw UnsupportedError(
+          'DefaultFirebaseOptions have not been configured for windows - '
+          'you can reconfigure this by running the FlutterFire CLI again.',
+        );
       case TargetPlatform.linux:
         throw UnsupportedError(
           'DefaultFirebaseOptions have not been configured for linux - '
@@ -41,48 +53,12 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyAhewcJ64CF4hcS9Ermp6eJiFZmnzDeloU',
-    appId: '1:18849604537:web:08e8f122470158dc12cc68',
-    messagingSenderId: '18849604537',
-    projectId: 'pronexus-73107',
-    authDomain: 'pronexus-73107.firebaseapp.com',
-    storageBucket: 'pronexus-73107.appspot.com',
-    measurementId: 'G-KPKPHH00KG',
-  );
-
-  static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyC2aqX7DP2VBOvtv-lJWTzhf9TfBVioOlE',
-    appId: '1:18849604537:android:ccd5e3b391122d5712cc68',
-    messagingSenderId: '18849604537',
-    projectId: 'pronexus-73107',
-    storageBucket: 'pronexus-73107.appspot.com',
-  );
-
-  static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyCg9WTgY9SW_3lUhpeDTUbAzOXg4UnqTII',
-    appId: '1:18849604537:ios:63b486eaf30612e912cc68',
-    messagingSenderId: '18849604537',
-    projectId: 'pronexus-73107',
-    storageBucket: 'pronexus-73107.appspot.com',
-    iosBundleId: 'com.example.admin',
-  );
-
-  static const FirebaseOptions macos = FirebaseOptions(
-    apiKey: 'AIzaSyCg9WTgY9SW_3lUhpeDTUbAzOXg4UnqTII',
-    appId: '1:18849604537:ios:63b486eaf30612e912cc68',
-    messagingSenderId: '18849604537',
-    projectId: 'pronexus-73107',
-    storageBucket: 'pronexus-73107.appspot.com',
-    iosBundleId: 'com.example.admin',
-  );
-
-  static const FirebaseOptions windows = FirebaseOptions(
-    apiKey: 'AIzaSyAhewcJ64CF4hcS9Ermp6eJiFZmnzDeloU',
-    appId: '1:18849604537:web:8bc4e5e48b6eb59512cc68',
-    messagingSenderId: '18849604537',
-    projectId: 'pronexus-73107',
-    authDomain: 'pronexus-73107.firebaseapp.com',
-    storageBucket: 'pronexus-73107.appspot.com',
-    measurementId: 'G-RDGW3NTRZJ',
+    apiKey: 'AIzaSyAJtHBQTkpSD5SIXWU9X4KxaMTZdl-Gvic',
+    appId: '1:645659550284:web:9bf2eca94c07297ce4cae9',
+    messagingSenderId: '645659550284',
+    projectId: 'pronexus-mvp',
+    authDomain: 'pronexus-mvp.firebaseapp.com',
+    storageBucket: 'pronexus-mvp.appspot.com',
+    measurementId: 'G-4JBZPPKH6D',
   );
 }

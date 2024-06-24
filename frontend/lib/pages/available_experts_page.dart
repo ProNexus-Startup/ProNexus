@@ -98,67 +98,6 @@ class _AvailableExpertsDashboardState extends State<AvailableExpertsDashboard> {
           builder: (context, setState) {
             return AlertDialog(
               title: Text('Add New Expert'),
-              content: SingleChildScrollView(
-                child: ListBody(
-                  children: <Widget>[
-                    TextField(
-                      controller: nameController,
-                      decoration: InputDecoration(hintText: "Name"),
-                    ),
-                    TextField(
-                      controller: titleController,
-                      decoration: InputDecoration(hintText: "Title"),
-                    ),
-                    TextField(
-                      controller: companyController,
-                      decoration: InputDecoration(hintText: "Company"),
-                    ),
-                    TextField(
-                      controller: companyTypeController,
-                      decoration: InputDecoration(hintText: "Company Type"),
-                    ),
-                    TextField(
-                      decoration: InputDecoration(
-                        hintText: "Start Date at Company",
-                      ),
-                      onTap: () async {
-                        FocusScope.of(context).requestFocus(new FocusNode());
-                        await _selectDate(context);
-                      },
-                      readOnly: true,
-                      controller: TextEditingController(
-                          text:
-                              "${startDateController.toLocal()}".split(' ')[0]),
-                    ),
-                    TextField(
-                      controller: descriptionController,
-                      decoration: InputDecoration(hintText: "Description"),
-                    ),
-                    TextField(
-                      controller: geographyController,
-                      decoration: InputDecoration(hintText: "Geography"),
-                    ),
-                    TextField(
-                      controller: angleController,
-                      decoration: InputDecoration(hintText: "Angle"),
-                    ),
-                    TextField(
-                      controller: statusController,
-                      decoration: InputDecoration(hintText: "Status"),
-                    ),
-                    TextField(
-                      controller: commentsController,
-                      decoration: InputDecoration(hintText: "Comments"),
-                    ),
-                    TextField(
-                      controller: costController,
-                      keyboardType: TextInputType.number,
-                      decoration: InputDecoration(hintText: "Cost"),
-                    ),
-                    // Additional inputs like Switches or Checkboxes for isSelected, favorite, etc., can be added here if needed.
-                  ],
-                ),
-              ),
               actions: <Widget>[
                 TextButton(
                   child: Text('Cancel'),
