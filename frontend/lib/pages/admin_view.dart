@@ -11,10 +11,9 @@ import 'package:admin/utils/models/user.dart';
 import 'package:admin/utils/persistence/secure_storage.dart';
 
 class AdminPage extends StatefulWidget {
-  final String token;
   static const routeName = '/admin';
 
-  const AdminPage({Key? key, required this.token}) : super(key: key);
+  const AdminPage({Key? key}) : super(key: key);
 
   @override
   _AdminPageState createState() => _AdminPageState();
@@ -23,6 +22,7 @@ class AdminPage extends StatefulWidget {
 class _AdminPageState extends State<AdminPage> {
   List<bool> _isSelected = [true, false];
   final AuthAPI _authAPI = AuthAPI();
+  late String token = '';
 
   @override
   void initState() {
@@ -37,13 +37,15 @@ class _AdminPageState extends State<AdminPage> {
   }
 
   Future<void> _loadData() async {
+    token = await SecureStorage().read('token');
+
     final GlobalBloc globalBloc =
         Provider.of<GlobalBloc>(context, listen: false);
-    globalBloc.onUserLogin(widget.token);
+    globalBloc.onUserLogin();
   }
 
   Future<void> _sendProject(Project project) async {
-    await _authAPI.makeProject(widget.token, project);
+    await _authAPI.makeProject(token, project);
     await _loadData(); // Refresh data after sending the project
   }
 
@@ -106,12 +108,12 @@ class _AdminPageState extends State<AdminPage> {
                     child: _isSelected[1]
                         ? ProjectView(
                             projectList: projectList,
-                            token: widget.token,
+                            token: token,
                             globalBloc: globalBloc,
                           )
                         : UserView(
                             userList: userList,
-                            token: widget.token,
+                            token: token,
                             orgId: globalBloc.currentUser.organizationId)),
               ),
             ],
@@ -329,7 +331,7 @@ class UserView extends StatelessWidget {
   Future<void> _loadData(BuildContext context) async {
     final GlobalBloc globalBloc =
         Provider.of<GlobalBloc>(context, listen: false);
-    globalBloc.onUserLogin(token);
+    globalBloc.onUserLogin();
   }
 
   @override
@@ -359,7 +361,7 @@ class UserView extends StatelessWidget {
                   DataCell(Text(user.userId ?? '')),
                   DataCell(Text(user.fullName)),
                   DataCell(Text(user.email)),
-                  DataCell(Text(user.level)),
+                  DataCell(Text(user.level ?? '')),
                   DataCell(Text('Active')), // Example Status
                   DataCell(Text('4/2/24')), // Example Last login
                   DataCell(

@@ -8,7 +8,7 @@ class User {
   String currentProject;
   List<Proj> pastProjects;
   bool admin;
-  String level;
+  String? level;
   DateTime? signedAt;
   String? token;
 
@@ -21,7 +21,7 @@ class User {
     required this.organizationId,
     this.dateOnboarded,
     required this.admin,
-    required this.level,
+    this.level,
     this.signedAt,
     this.token,
     required this.pastProjects,
@@ -80,7 +80,7 @@ class Proj {
     return Proj(
       start: DateTime.parse(json['start']),
       end: json['end'] != null ? DateTime.parse(json['end']) : null,
-      projectId: json['timeZone'] ?? '',
+      projectId: json['projectId'] ?? '',
     );
   }
 

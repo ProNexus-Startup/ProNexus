@@ -5,6 +5,7 @@ import (
 	"github.com/rpupo63/ProNexus/backend/errs"
 	"github.com/rpupo63/ProNexus/backend/models"
 	"github.com/google/uuid"
+    "reflect"
 )
 
 type UserRepo struct {
@@ -51,47 +52,31 @@ func (r *UserRepo) Insert(desiredUser models.User) error {
 	*r.users = append(*r.users, desiredUser)
 	return nil
 }
-func (r *UserRepo) Update(userFields models.User) error {
-    if userFields.ID == "" {
-        return fmt.Errorf("error: missing ID field in argument")
-    }
 
-    for i, user := range *r.users {
-        if user.ID == userFields.ID {
-            if userFields.Email != "" {
-                (*r.users)[i].Email = userFields.Email
-            }
-            if userFields.FullName != "" {
-                (*r.users)[i].FullName = userFields.FullName
-            }
-            if userFields.Password != "" {
-                (*r.users)[i].Password = userFields.Password
-            }
-            if userFields.OrganizationID != "" {
-                (*r.users)[i].OrganizationID = userFields.OrganizationID
-            }
-            if !userFields.DateOnboarded.IsZero() {
-                (*r.users)[i].DateOnboarded = userFields.DateOnboarded
-            }
-            if len(userFields.PastProjects) > 0 {
-                (*r.users)[i].PastProjects = userFields.PastProjects
-            }
-            if userFields.Admin {
-                (*r.users)[i].Admin = userFields.Admin
-            }
-            if userFields.Level != "" {
-                (*r.users)[i].Level = userFields.Level
-            }
-            if !userFields.SignedAt.IsZero() {
-                (*r.users)[i].SignedAt = userFields.SignedAt
-            }
-            if userFields.Token != "" {
-                (*r.users)[i].Token = userFields.Token
-            }
-            // Add more fields as necessary
-        }
-    }
-    return nil
+func (r *UserRepo) Update(userFields models.User) error {
+	if userFields.ID == "" {
+		return fmt.Errorf("error: missing ID field in argument")
+	}
+
+	for i, user := range *r.users {
+		if user.ID == userFields.ID {
+			userValue := reflect.ValueOf(&user).Elem()
+			fieldsValue := reflect.ValueOf(userFields)
+
+			for j := 0; j < fieldsValue.NumField(); j++ {
+				field := fieldsValue.Field(j)
+				if !field.IsZero() {
+					userField := userValue.Field(j)
+					userField.Set(field)
+				}
+			}
+
+			(*r.users)[i] = user
+			break
+		}
+	}
+
+	return nil
 }
 
 func (r *UserRepo) FindByOrganization(organizationID string) ([]models.User, error) {

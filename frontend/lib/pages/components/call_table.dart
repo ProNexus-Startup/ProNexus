@@ -54,20 +54,24 @@ class CallTableState extends State<CallTable> {
   }
 
   List<String> stableHeader = [
-    'Invite Sent to Team',
+    'Name',
+    'Date',
+    'Time',
+    'Length',
+    'Status',
+    'Angle',
+    'Title',
+    'Company',
+    'Company Type',
+    'Source',
+    'Cost',
+    'Paid',
+    'Sourced by Company Name',
     'Quote Attribution',
     'Rating',
     'Comment',
-    'Status',
-    'Name',
-    'Date',
-    'Length',
-    'Time',
-    'Title',
-    'Company',
     'Year',
     'Geography',
-    'Angle',
     'AI match',
     'AI analysis',
     'Comments from network',
@@ -80,16 +84,22 @@ class CallTableState extends State<CallTable> {
   List<ExtentModel> _columnExtents = [];
 
   final List<ExtentModel> _columnExtentsBase = [
+    ExtentModel(126),
+    ExtentModel(126),
+    ExtentModel(126),
+    ExtentModel(126),
+    ExtentModel(126),
+    ExtentModel(126),
+    ExtentModel(126),
+    ExtentModel(126),
+    ExtentModel(126),
+    ExtentModel(126),
+    ExtentModel(126),
+    ExtentModel(126),
+    ExtentModel(126),
     ExtentModel(73),
     ExtentModel(182),
     ExtentModel(175),
-    ExtentModel(126),
-    ExtentModel(126),
-    ExtentModel(126),
-    ExtentModel(126),
-    ExtentModel(126),
-    ExtentModel(126),
-    ExtentModel(126),
     ExtentModel(97),
     ExtentModel(176),
     ExtentModel(235),
@@ -182,30 +192,11 @@ class CallTableState extends State<CallTable> {
                             }
                             return rowColor;
                           }),
-                          cells: [
-                            _buildDataCell(call, 0, index),
-                            _buildDataCell(call, 1, index),
-                            _buildDataCell(call, 2, index),
-                            _buildDataCell(call, 3, index),
-                            _buildDataCell(call, 4, index),
-                            _buildDataCell(call, 5, index),
-                            _buildDataCell(call, 6, index),
-                            _buildDataCell(call, 7, index),
-                            _buildDataCell(call, 8, index),
-                            _buildDataCell(call, 9, index),
-                            _buildDataCell(call, 10, index),
-                            _buildDataCell(call, 11, index),
-                            _buildDataCell(call, 12, index),
-                            _buildDataCell(call, 13, index),
-                            _buildDataCell(call, 14, index),
-                            _buildDataCell(call, 15, index),
-                            _buildDataCell(call, 16, index),
-                            _buildDataCell(call, 17, index),
-                            _buildDataCell(call, 18, index),
-                            _buildDataCell(call, 19, index),
-                            ...uniqueQuestions.map((question) =>
-                                _buildQuestionDataCell(call, question, index)),
-                          ],
+                          cells: List.generate(header.length, (columnIndex) {
+                            return _buildDataCell(call, columnIndex, index);
+                          })
+                            ..addAll(uniqueQuestions.map((question) =>
+                                _buildQuestionDataCell(call, question, index))),
                         );
                       },
                     ),
@@ -338,58 +329,37 @@ class CallTableState extends State<CallTable> {
   }
 
   Widget _buildCellContent(CallTracker callData, int columnIndex) {
-    switch (columnIndex) {
-      case 0:
-        return GestureDetector(
-          onTap: () {
-            setState(() {
-              callData.inviteSent = !callData.inviteSent;
-            });
-          },
-          child: Center(
-            child: callData.inviteSent
-                ? Image.asset(
-                    'icons/user_check.png',
-                    height: 24,
-                    width: 24,
-                  )
-                : Text('No'),
-          ),
-        );
-
-      case 1:
+    switch (header[columnIndex]) {
+      case 'Name':
         return Text(
-          '${callData.profession} at ${callData.company}',
+          callData.name,
           style: _textStyle,
           textAlign: TextAlign.left,
         );
-      case 2:
-        return RatingBar.builder(
-          initialRating: (callData.rating ?? 0) /
-              2, // Converting rating from 1-10 to 0.5-5.0
-          minRating: 0.5,
-          direction: Axis.horizontal,
-          allowHalfRating: true,
-          itemCount: 5,
-          itemPadding: EdgeInsets.symmetric(horizontal: 4.0),
-          itemBuilder: (context, _) => Icon(
-            Icons.star,
-            color: Colors.amber,
-          ),
-          onRatingUpdate: (rating) {
-            setState(() {
-              callData.rating =
-                  (rating * 2).toInt(); // Convert back to 1-10 scale
-            });
-          },
-        );
-      case 3:
+      case 'Date':
         return Text(
-          callData.comments ?? 'No data',
+          (callData.startDate?.toIso8601String() ?? ''),
           style: _textStyle,
           textAlign: TextAlign.left,
         );
-      case 4:
+      case 'Time':
+        return Text(
+          (callData.startDate?.toIso8601String() ?? '').substring(11, 16),
+          style: _textStyle,
+          textAlign: TextAlign.left,
+        );
+      case 'Length':
+        if (callData.meetingStartDate != null &&
+            callData.meetingEndDate != null) {
+          return Text(
+            '${callData.meetingEndDate!.difference(callData.meetingStartDate!)} minutes',
+            style: _textStyle,
+            textAlign: TextAlign.left,
+          );
+        } else {
+          return Text('Missing meeting date information');
+        }
+      case 'Status':
         return Container(
           color: _getStatusColor(callData.status),
           padding: const EdgeInsets.symmetric(horizontal: 8.0),
@@ -411,67 +381,99 @@ class CallTableState extends State<CallTable> {
             },
           ),
         );
-      case 5:
-        return Text(
-          callData.name,
-          style: _textStyle,
-          textAlign: TextAlign.left,
-        );
-      case 6:
-        return Text(
-          (callData.startDate?.toIso8601String() ?? ''),
-          style: _textStyle,
-          textAlign: TextAlign.left,
-        );
-      case 7:
-        if (callData.meetingStartDate != null &&
-            callData.meetingEndDate != null) {
-          return Text(
-            '${callData.meetingEndDate!.difference(callData.meetingStartDate!)} minutes',
-            style: _textStyle,
-            textAlign: TextAlign.left,
-          );
-        } else {
-          return Text('Missing meeting date information');
-        }
-
-      case 8:
-        return Text(
-          (callData.startDate?.toIso8601String() ?? '').substring(11, 16),
-          style: _textStyle,
-          textAlign: TextAlign.left,
-        );
-      case 9:
-        return Text(
-          callData.profession,
-          style: _textStyle,
-          textAlign: TextAlign.left,
-        );
-      case 10:
-        return Text(
-          callData.company,
-          style: _textStyle,
-          textAlign: TextAlign.left,
-        );
-      case 11:
-        return Text(
-          (callData.startDate?.year.toString() ?? ''),
-          style: _textStyle,
-          textAlign: TextAlign.left,
-        );
-      case 12:
-        return Text(
-          callData.geography ?? 'No data',
-          style: _textStyle,
-          textAlign: TextAlign.left,
-        );
-      case 13:
+      case 'Angle':
         return Text(
           callData.angle ?? 'No data',
           style: _textStyle,
           textAlign: TextAlign.left,
         );
-      case 14:
+      case 'Title':
+        return Text(
+          callData.profession,
+          style: _textStyle,
+          textAlign: TextAlign.left,
+        );
+      case 'Company':
+        return Text(
+          callData.company,
+          style: _textStyle,
+          textAlign: TextAlign.left,
+        );
+      case 'Company Type':
+        return Text(
+          callData.companyType ?? 'No Data',
+          style: _textStyle,
+          textAlign: TextAlign.left,
+        );
+      case 'Source':
+        return Text(
+          callData.expertNetworkName ?? 'No Data',
+          style: _textStyle,
+          textAlign: TextAlign.left,
+        );
+      case 'Cost':
+        return Text(
+          callData.cost.toString(),
+          style: _textStyle,
+          textAlign: TextAlign.left,
+        );
+      case 'Paid':
+        return Text(
+          (callData.paidStatus ?? false) ? 'Yes' : 'No',
+          style: _textStyle,
+          textAlign: TextAlign.left,
+        );
+      case 'Sourced by Company Name':
+        return Text(
+          'No data',
+          style: _textStyle,
+          textAlign: TextAlign.left,
+        );
+      case 'Quote Attribution':
+        return Text(
+          '${callData.profession} at ${callData.company}',
+          style: _textStyle,
+          textAlign: TextAlign.left,
+        );
+      case 'Rating':
+        return RatingBar.builder(
+          initialRating: (callData.rating ?? 0) /
+              2, // Converting rating from 1-10 to 0.5-5.0
+          minRating: 0.5,
+          direction: Axis.horizontal,
+          allowHalfRating: true,
+          itemCount: 5,
+          itemPadding: EdgeInsets.symmetric(horizontal: 4.0),
+          itemBuilder: (context, _) => Icon(
+            Icons.star,
+            color: Colors.amber,
+          ),
+          onRatingUpdate: (rating) {
+            setState(() {
+              callData.rating =
+                  (rating * 2).toInt(); // Convert back to 1-10 scale
+            });
+          },
+        );
+      case 'Comment':
+        return Text(
+          callData.comments ?? 'No data',
+          style: _textStyle,
+          textAlign: TextAlign.left,
+        );
+      case 'Year':
+        return Text(
+          (callData.startDate?.year.toString() ?? ''),
+          style: _textStyle,
+          textAlign: TextAlign.left,
+        );
+      case 'Geography':
+        return Text(
+          callData.geography ?? 'No data',
+          style: _textStyle,
+          textAlign: TextAlign.left,
+        );
+      case 'AI match':
         return Text(
           callData.aiAssessment.toString(),
           style: TextStyle(
@@ -480,32 +482,32 @@ class CallTableState extends State<CallTable> {
           ),
           textAlign: TextAlign.left,
         );
-      case 15:
+      case 'AI analysis':
         return Text(
           callData.aiAnalysis ?? 'No data',
           style: _textStyle,
           textAlign: TextAlign.left,
         );
-      case 16:
+      case 'Comments from network':
         return Text(
           callData.comments ?? 'No data',
           style: _textStyle,
           textAlign: TextAlign.left,
         );
-      case 17:
+      case 'Availability':
         return Text(
           callData.availabilities?.first.start.toString() ??
               'No availabilities',
           style: _textStyle,
           textAlign: TextAlign.left,
         );
-      case 18:
+      case 'Network':
         return Text(
           callData.expertNetworkName ?? 'No data',
           style: _textStyle,
           textAlign: TextAlign.left,
         );
-      case 19:
+      case 'Cost (1 hr)':
         return Text(
           callData.cost.toString(),
           style: _textStyle,
@@ -532,51 +534,59 @@ class CallTableState extends State<CallTable> {
   }
 
   String _getCellContent(CallTracker callData, int columnIndex) {
-    switch (columnIndex) {
-      case 0:
-        return callData.inviteSent ? 'Yes' : 'No';
-      case 1:
-        return '${callData.profession} at ${callData.company}';
-      case 2:
-        return callData.favorite ? 'Yes' : 'No';
-      case 3:
-        return callData.comments ?? '';
-      case 4:
-        return callData.status ?? '';
-      case 5:
+    switch (header[columnIndex]) {
+      case 'Name':
         return callData.name;
-      case 6:
+      case 'Date':
         return callData.startDate?.toIso8601String() ?? '';
-      case 7:
+      case 'Time':
+        return (callData.startDate?.toIso8601String() ?? '').substring(11, 16);
+      case 'Length':
         if (callData.meetingStartDate != null &&
             callData.meetingEndDate != null) {
           return '${callData.meetingEndDate!.difference(callData.meetingStartDate!)} minutes';
         } else {
           return 'Missing meeting date information';
         }
-      case 8:
-        return (callData.startDate?.toIso8601String() ?? '').substring(11, 16);
-      case 9:
+      case 'Status':
+        return callData.status ?? 'No Data';
+      case 'Angle':
+        return callData.angle ?? 'No Data';
+      case 'Title':
         return callData.profession;
-      case 10:
+      case 'Company':
         return callData.company;
-      case 11:
-        return callData.startDate?.year.toString() ?? '';
-      case 12:
-        return callData.geography ?? '';
-      case 13:
-        return callData.angle ?? '';
-      case 14:
-        return callData.aiAssessment.toString();
-      case 15:
-        return callData.aiAnalysis ?? '';
-      case 16:
+      case 'Company Type':
+        return callData.companyType ?? 'No Data';
+      case 'Source':
+        return callData.expertNetworkName ?? 'No Data';
+      case 'Cost':
+        return callData.cost.toString();
+      case 'Paid':
+        return (callData.paidStatus ?? false) ? 'Yes' : 'No';
+      case 'Sourced by Company Name':
+        return 'No data';
+      case 'Quote Attribution':
+        return '${callData.profession} at ${callData.company}';
+      case 'Rating':
+        return callData.favorite ? 'Yes' : 'No';
+      case 'Comment':
         return callData.comments ?? '';
-      case 17:
+      case 'Year':
+        return callData.startDate?.year.toString() ?? '';
+      case 'Geography':
+        return callData.geography ?? '';
+      case 'AI match':
+        return callData.aiAssessment.toString();
+      case 'AI analysis':
+        return callData.aiAnalysis ?? '';
+      case 'Comments from network':
+        return callData.comments ?? '';
+      case 'Availability':
         return callData.availabilities?.first.start.toString() ?? '';
-      case 18:
+      case 'Network':
         return callData.expertNetworkName ?? '';
-      case 19:
+      case 'Cost (1 hr)':
         return callData.cost.toString();
       default:
         return 'No data';
@@ -647,26 +657,30 @@ class CallTableState extends State<CallTable> {
 
     // Define header if not defined
     List<String> header = [
-      'Invite Sent to Team',
+      'Name',
+      'Date',
+      'Time',
+      'Length',
+      'Status',
+      'Angle',
+      'Title',
+      'Company',
+      'Company Type',
+      'Source',
+      'Cost',
+      'Paid',
+      'Sourced by Company Name',
       'Quote Attribution',
       'Rating',
       'Comments',
-      'Status',
-      'Name',
-      'Date',
-      'Length',
-      'Time',
-      'Profession',
-      'Company',
       'Year',
       'Geography',
-      'Angle',
-      'AI Assessment',
-      'AI Analysis',
-      'Comments',
-      'Availability Start',
-      'Expert Network Name',
-      'Cost'
+      'AI match',
+      'AI analysis',
+      'Comments from network',
+      'Availability',
+      'Network',
+      'Cost (1 hr)'
     ];
 
     // Add unique questions to the header
@@ -684,20 +698,24 @@ class CallTableState extends State<CallTable> {
       }
 
       List<dynamic> row = [];
-      row.add(call.inviteSent ? 'Yes' : 'No');
+      row.add(call.name);
+      row.add(call.startDate.toString());
+      row.add((call.startDate?.toIso8601String() ?? '').substring(11, 16));
+      row.add(callLength.toString());
+      row.add(call.status ?? '');
+      row.add(call.angle ?? '');
+      row.add(call.profession);
+      row.add(call.company);
+      row.add(call.companyType); // Placeholder for 'Company Type'
+      row.add(call.expertNetworkName); // Placeholder for 'Source'
+      row.add(call.cost.toString());
+      row.add(call.paidStatus); // Placeholder for 'Paid'
+      row.add('No data'); // Placeholder for 'Sourced by Company Name'
       row.add('${call.profession} at ${call.company}');
       row.add(call.favorite ? 'Yes' : 'No');
       row.add(call.comments ?? '');
-      row.add(call.status ?? '');
-      row.add(call.name);
-      row.add(call.startDate.toString());
-      row.add(callLength.toString());
-      row.add((call.startDate?.toIso8601String() ?? '').substring(11, 16));
-      row.add(call.profession);
-      row.add(call.company);
       row.add(call.startDate?.year.toString() ?? '');
       row.add(call.geography ?? '');
-      row.add(call.angle ?? '');
       row.add(call.aiAssessment.toString());
       row.add(call.aiAnalysis ?? '');
       row.add(call.comments ?? '');

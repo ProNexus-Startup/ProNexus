@@ -4,16 +4,36 @@ import 'package:admin/utils/models/call_tracker.dart';
 import 'package:admin/utils/models/expert_filter_model.dart';
 import 'package:admin/utils/models/project.dart';
 import 'package:admin/utils/models/user.dart';
+import 'package:admin/utils/persistence/secure_storage.dart';
 import 'package:flutter/material.dart';
 
 class GlobalBloc with ChangeNotifier {
-  // all experts list
+  // Singleton instance
+  static final GlobalBloc _singleton = GlobalBloc._internal();
+
+  factory GlobalBloc() {
+    return _singleton;
+  }
+
+  GlobalBloc._internal() {
+    expertList = [];
+    callList = [];
+    unfilteredExpertList = [];
+    unfilteredCallList = [];
+    projectList = [];
+    userProjectList = [];
+    userList = [];
+    currentUser = User.defaultUser();
+  }
+
+  // All experts list
   List<AvailableExpert> _allExperts = [];
-  // filtered experts list based on the filters applied
+
+  // Filtered experts list based on the filters applied
   List<AvailableExpert> filteredExperts = [];
   String benchProject = '';
 
-  // get all experts list
+  // Get all experts list
   List<AvailableExpert> get allExperts => _allExperts;
 
   // List of filters to be applied
@@ -24,6 +44,7 @@ class GlobalBloc with ChangeNotifier {
     ExpertFilterModel(filterValues: [], heading: 'Geography'),
     ExpertFilterModel(filterValues: [], heading: 'Expert Network'),
   ];
+
   // Example filter variables
   bool favoriteFilter = false;
   String geographyFilter = '';
@@ -57,32 +78,13 @@ class GlobalBloc with ChangeNotifier {
     notifyListeners();
   }
 
-  static final GlobalBloc _singleton = GlobalBloc._internal();
-
-  factory GlobalBloc() {
-    return _singleton;
-  }
-
-  GlobalBloc._internal() {
-    expertList = [];
-    callList = [];
-    unfilteredExpertList = [];
-    unfilteredCallList = [];
-    projectList = [];
-    userProjectList = [];
-    userList = [];
-    currentUser = User.defaultUser();
-  }
-
   late List<Project> projectList;
   late List<Project> userProjectList;
   late List<User> userList;
   late List<AvailableExpert> expertList;
   late List<AvailableExpert> unfilteredExpertList;
   late List<CallTracker> callList;
-
   late List<CallTracker> unfilteredCallList;
-
   late User currentUser;
 
   List<AvailableExpert> get expertListStream => expertList;
@@ -95,7 +97,9 @@ class GlobalBloc with ChangeNotifier {
   List<Project> get userProjectListStream => userProjectList;
   List<User> get userListStream => userList;
 
-  Future<void> onUserLogin(String token) async {
+  Future<void> onUserLogin() async {
+    String token = await SecureStorage().read('token');
+
     AuthAPI _authAPI = AuthAPI();
 
     try {
@@ -252,7 +256,7 @@ class GlobalBloc with ChangeNotifier {
 
     filteredExperts.clear();
     filteredExperts.addAll(allExpertA);
-    // notifyListeners();
+    notifyListeners();
   }
 
   void _removeExtraExpert(
@@ -270,7 +274,7 @@ class GlobalBloc with ChangeNotifier {
 
   Future<void> updateExpertFilters() async {
     filterExperts();
-    //update state of filters
+    // Update state of filters
     List<ExpertFilterModel> expertFiltersTemp = [];
     expertFiltersTemp.addAll(filters.map((e) => e.copyWith()));
 
@@ -295,7 +299,7 @@ class GlobalBloc with ChangeNotifier {
       (expert) => expert.expertNetworkName!,
     );
 
-    // update state of filters
+    // Update state of filters
     for (ExpertFilterModel filter in expertFiltersTemp) {
       filter.filterValues = filter.filterValues
           .map((e) => e.copyWith(
@@ -310,7 +314,7 @@ class GlobalBloc with ChangeNotifier {
     ExpertFilterModel filter,
     String Function(AvailableExpert) toElement,
   ) {
-    // update state of filters
+    // Update state of filters
     filter.filterValues = _allExperts
         .map(toElement)
         .toSet()

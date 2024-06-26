@@ -1,10 +1,10 @@
 import 'dart:convert';
+import 'package:admin/pages/components/custom_form.dart';
 import 'package:admin/utils/persistence/global_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'splash_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../utils/formatting/app_text_form_field.dart';
 import '../utils/BaseAPI.dart';
 import '../utils/persistence/secure_storage.dart';
 
@@ -51,7 +51,7 @@ class _LoginPageState extends State<LoginPage> {
         }
         final GlobalBloc globalBloc =
             Provider.of<GlobalBloc>(context, listen: false);
-        globalBloc.onUserLogin(token);
+        globalBloc.onUserLogin();
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
@@ -68,177 +68,72 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
-    //final size = MediaQuery.of(context).size;
-
     return Scaffold(
-      body: SingleChildScrollView(
-        child: Form(
-          key: _formKey,
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(100),
+        child: Align(
+          alignment: Alignment.topLeft,
+          child: Image.asset(
+            'images/thin_logo.png',
+            height: 100,
+          ),
+        ),
+      ),
+      body: Center(
+        // Wrap SingleChildScrollView with Center
+        child: SingleChildScrollView(
           child: Column(
+            mainAxisAlignment: MainAxisAlignment.center, // Center the form
             children: [
-              Container(
-                padding: const EdgeInsets.all(20),
-                child: const Column(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Sign in to your account',
-                    ),
-                    SizedBox(
-                      height: 6,
-                    ),
-                  ],
-                ),
-              ),
-              Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 20, vertical: 30),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    AppTextFormField(
-                      labelText: 'Email',
-                      keyboardType: TextInputType.name,
-                      textInputAction: TextInputAction.next,
-                      onChanged: (value) {
-                        _formKey.currentState?.validate();
-                      },
-                      /*validator: (value) {
-                        return value!.isEmpty
-                            ? 'Please, Enter Username Address'
-                            : AppConstants.emailRegex.hasMatch(value)
-                                ? null
-                                : 'Invalid Username Address';
-                      },*/
-                      controller: emailController,
-                    ),
-                    AppTextFormField(
-                      labelText: 'Password',
-                      keyboardType: TextInputType.visiblePassword,
-                      textInputAction: TextInputAction.done,
-                      /*onChanged: (value) {
-                        _formKey.currentState?.validate();
-                      },
-                      validator: (value) {
-                        return value!.isEmpty
-                            ? 'Please, Enter Password'
-                            : AppConstants.passwordRegex.hasMatch(value)
-                                ? null
-                                : 'Invalid Password';
-                      },*/
-                      controller: passwordController,
-                      obscureText: isObscure,
-                      suffixIcon: Padding(
-                        padding: const EdgeInsets.only(right: 15),
-                        child: IconButton(
-                          onPressed: () {
-                            setState(() {
-                              isObscure = !isObscure;
-                            });
-                          },
-                          icon: Icon(
-                            isObscure
-                                ? Icons.visibility_off_outlined
-                                : Icons.visibility_outlined,
-                          ),
+              CustomForm(
+                forgotPassword: true,
+                formKey: _formKey,
+                orLoginWith: true,
+                fields: [
+                  {
+                    'labelText': 'Email',
+                    'keyboardType': TextInputType.emailAddress,
+                    'textInputAction': TextInputAction.next,
+                    'controller': emailController,
+                  },
+                  {
+                    'labelText': 'Password',
+                    'keyboardType': TextInputType.visiblePassword,
+                    'textInputAction': TextInputAction.done,
+                    'controller': passwordController,
+                    'obscureText': isObscure,
+                    'suffixIcon': Padding(
+                      padding: const EdgeInsets.only(right: 15),
+                      child: IconButton(
+                        onPressed: () {
+                          setState(() {
+                            isObscure = !isObscure;
+                          });
+                        },
+                        icon: Icon(
+                          isObscure
+                              ? Icons.visibility_off_outlined
+                              : Icons.visibility_outlined,
                         ),
                       ),
                     ),
-                    TextButton(
-                      onPressed: () {
-                        Navigator.pushNamed(context, '/password_reset');
-                      },
-                      child: const Text(
-                        'Forgot Password?',
-                      ),
-                    ),
-                    const SizedBox(
-                      height: 15,
-                    ),
-                    FilledButton(
-                      onPressed:
-                          verifyLogin, // Updated to call verifyLogin directly
-                      child: const Text('Login'),
-                    ),
-                    const SizedBox(
-                      height: 30,
-                    ),
-                    const Row(
-                      children: [
-                        Expanded(
-                          child: Divider(),
-                        ),
-                        Padding(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: 20,
-                          ),
-                          child: Text(
-                            'Or login with',
-                          ),
-                        ),
-                        Expanded(
-                          child: Divider(),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(
-                      height: 30,
-                    ),
-                    /*Row(
-                      children: [
-                        Expanded(
-                          child: OutlinedButton.icon(
-                            onPressed: () {},
-                            style: Theme.of(context).outlinedButtonTheme.style,
-                            icon: SvgPicture.asset(
-                              Vectors.googleIcon,
-                              width: 14,
-                            ),
-                            label: const Text(
-                              'Google',
-                              style: TextStyle(color: Colors.black),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(
-                          width: 20,
-                        ),
-                        Expanded(
-                          child: OutlinedButton.icon(
-                            onPressed: () {},
-                            style: Theme.of(context).outlinedButtonTheme.style,
-                            icon: SvgPicture.asset(
-                              Vectors.facebookIcon,
-                              width: 14,
-                            ),
-                            label: const Text(
-                              'Facebook',
-                              style: TextStyle(color: Colors.black),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),*/
-                  ],
-                ),
+                  },
+                ],
+                title: 'Sign in',
+                subtitle: 'Navigate expert networks with simplicity',
+                buttonText: 'Login',
+                buttonAction: verifyLogin,
               ),
               Padding(
-                padding:
-                    const EdgeInsets.symmetric(vertical: 10, horizontal: 25),
+                padding: const EdgeInsets.symmetric(vertical: 10),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Text(
-                      "Don't have an account?",
-                    ),
+                    const Text("Don't have an account?"),
                     TextButton(
                       onPressed: () =>
-                          {Navigator.pushNamed(context, '/org-registration')},
-                      child: const Text(
-                        'Register New Organization',
-                      ),
+                          Navigator.pushNamed(context, '/org-registration'),
+                      child: const Text('Register New Organization'),
                     ),
                   ],
                 ),

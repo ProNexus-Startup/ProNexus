@@ -10,7 +10,7 @@ type User struct {
     OrganizationID string    `json:"organizationId" db:"organization_id"`
     DateOnboarded  time.Time `json:"dateOnboarded" db:"date_onboarded"`
     CurrentProject string    `json:"currentProject" db:"currentProject"`
-    PastProjects   []Proj    `json:"pastProjectIDs" db:"past_projects"`
+    PastProjects   []Proj    `json:"pastProjects" db:"past_projects"`
     Admin          bool      `json:"admin" db:"admin"`
     Level          string    `json:"level" db:"level"`
     SignedAt       time.Time `json:"signedAt" db:"signed_at"`
@@ -20,5 +20,5 @@ type User struct {
 type Proj struct {
     Start     time.Time `json:"start" db:"start"`
     End       time.Time `json:"end" db:"end"`
-    ProjectID string    `json:"projectId" db:"projectId"`
+    ProjectID string    `json:"projectId" db:"project_Id"`
 }

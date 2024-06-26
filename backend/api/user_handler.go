@@ -99,11 +99,11 @@ func (h userHandler) makeSignature() http.HandlerFunc {
 		return
 	}
 }
-
 type ProjectUpdateRequest struct {
-    NewProject     string    `json:"newProject"`
-    DateOnboarded  time.Time `json:"dateOnboarded"`
+    NewProject    string    `json:"newProject"`
+    DateOnboarded time.Time `json:"dateOnboarded"`
 }
+
 func (h userHandler) changeProjects() http.HandlerFunc {
     return func(w http.ResponseWriter, r *http.Request) {
         token := r.Header.Get("Authorization")
@@ -138,10 +138,15 @@ func (h userHandler) changeProjects() http.HandlerFunc {
             user.PastProjects = append(user.PastProjects, pastProj)
         }
 
-        user.CurrentProject = updateReq.NewProject
-        user.DateOnboarded = updateReq.DateOnboarded
+        // Create a new User struct with only the fields that need to be updated
+        updatedUser := models.User{
+            ID:            user.ID,
+            CurrentProject: updateReq.NewProject,
+            DateOnboarded:  updateReq.DateOnboarded,
+            PastProjects:   user.PastProjects,
+        }
 
-        if err := h.userRepo.Update(user); err != nil {
+        if err := h.userRepo.Update(updatedUser); err != nil {
             fmt.Printf("Error updating user information: %v\n", err)
             h.responder.writeError(w, fmt.Errorf("error updating user information: %v", err))
             return

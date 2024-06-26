@@ -46,12 +46,12 @@ class _SplashPageState extends State<SplashPage> {
     final GlobalBloc globalBloc =
         Provider.of<GlobalBloc>(context, listen: false);
 
-    await globalBloc.onUserLogin(token!);
+    await globalBloc.onUserLogin();
 
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String last_route = prefs.getString('last_route') ?? HomePage.routeName;
 
-    if (token != 'No data found!' && token.isNotEmpty) {
+    if (token != 'No data found!' && token!.isNotEmpty) {
       if (globalBloc.currentUser.admin) {
         Navigator.pushReplacementNamed(context, last_route,
             arguments: ScreenArguments(token));

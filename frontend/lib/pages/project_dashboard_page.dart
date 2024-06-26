@@ -35,7 +35,7 @@ class _ProjectDashboardState extends State<ProjectDashboard> {
   Future<void> _loadData() async {
     final GlobalBloc globalBloc =
         Provider.of<GlobalBloc>(context, listen: false);
-    globalBloc.onUserLogin(widget.token);
+    globalBloc.onUserLogin();
   }
 
   // Update this based on checkbox changes
@@ -89,7 +89,7 @@ class _ProjectDashboardState extends State<ProjectDashboard> {
                 children: [
                   SizedBox(height: 50),
                   Align(
-                    alignment: Alignment.centerLeft,
+                    alignment: Alignment.center,
                     child: Text(
                       "Call Progress",
                       style: TextStyle(
@@ -99,24 +99,21 @@ class _ProjectDashboardState extends State<ProjectDashboard> {
                     ),
                   ),
                   SizedBox(height: 10),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children: [
-                      CircularDataTable(
-                        columnHeaders: [
-                          'Angles',
-                          'Completed',
-                          'Scheduled',
-                          'Progress total',
-                          'Goals'
-                        ],
-                        rowsData: callProgress,
-                      ),
-                    ],
+                  Center(
+                    child: CircularDataTable(
+                      columnHeaders: [
+                        'Angles',
+                        'Completed',
+                        'Scheduled',
+                        'Progress total',
+                        'Goals'
+                      ],
+                      rowsData: callProgress,
+                    ),
                   ),
                   SizedBox(height: 20),
-                  Align(
-                    alignment: Alignment.centerLeft,
+                  /*Align(
+                    alignment: Alignment.center,
                     child: Text(
                       "Total Costs",
                       style: TextStyle(
@@ -126,47 +123,46 @@ class _ProjectDashboardState extends State<ProjectDashboard> {
                     ),
                   ),
                   SizedBox(height: 10),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children: [
-                      CircularDataTable(
-                        columnHeaders: [
-                          'Source',
-                          'Total',
-                          'Value',
-                          'Metric',
+                  Center(
+                    child: CircularDataTable(
+                      columnHeaders: [
+                        'Source',
+                        'Total',
+                        'Budget',
+                        'Remaining',
+                        'Percentage Remaining'
+                      ],
+                      rowsData: [
+                        [
+                          'Expert networks',
+                          '\$4,500',
+                          'Estimated total project fees',
+                          '\$54,000'
                         ],
-                        rowsData: [
-                          [
-                            'Expert networks',
-                            '\$4,500',
-                            'Estimated total project fees',
-                            '\$54,000'
-                          ],
-                          [
-                            'Survey',
-                            '\$5,000',
-                            'Budget (at 17.5% of fees)',
-                            '\$60,000'
-                          ],
-                          [
-                            'Market research',
-                            '\$10,000',
-                            'Days Remaining in Project',
-                            '10'
-                          ],
-                          ['Personal', '\$700', '% of calls complete', '25%'],
-                          ['Others', '\$230', '', ''],
-                          ['Totals', '\$15,930', '', ''],
+                        [
+                          'Survey',
+                          '\$5,000',
+                          'Budget (at 17.5% of fees)',
+                          '\$60,000'
                         ],
-                      ),
-                    ],
+                        [
+                          'Market research',
+                          '\$10,000',
+                          'Days Remaining in Project',
+                          '10'
+                        ],
+                        ['Personal', '\$700', '% of calls complete', '25%'],
+                        ['Others', '\$230', '', ''],
+                        ['Totals', '\$15,930', '', ''],
+                      ],
+                    ),
                   ),
                   SizedBox(height: 20),
+                  */
                   Align(
-                    alignment: Alignment.centerLeft,
+                    alignment: Alignment.center,
                     child: Text(
-                      "Total Costs",
+                      "Expert Network Total Costs",
                       style: TextStyle(
                         color: primaryBlue,
                         fontWeight: FontWeight.bold,
@@ -174,19 +170,16 @@ class _ProjectDashboardState extends State<ProjectDashboard> {
                     ),
                   ),
                   SizedBox(height: 10),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children: [
-                      CircularDataTable(
-                        columnHeaders: [
-                          'Expert Network',
-                          'Completed',
-                          'Scheduled',
-                          'Progress total',
-                        ],
-                        rowsData: networkProgress,
-                      ),
-                    ],
+                  Center(
+                    child: CircularDataTable(
+                      columnHeaders: [
+                        'Expert Network',
+                        'Completed',
+                        'Scheduled',
+                        'Progress total',
+                      ],
+                      rowsData: networkProgress,
+                    ),
                   ),
                   SizedBox(height: 10),
                 ],
@@ -231,10 +224,12 @@ class CircularDataTable extends StatelessWidget {
                 columns: columnHeaders
                     .map(
                       (header) => DataColumn(
-                        label: Text(
-                          header,
-                          style: TextStyle(
-                            color: Colors.white, // Change text color to white
+                        label: Center(
+                          child: Text(
+                            header,
+                            style: TextStyle(
+                              color: Colors.white, // Change text color to white
+                            ),
                           ),
                         ),
                       ),
@@ -253,11 +248,14 @@ class CircularDataTable extends StatelessWidget {
                     }),
                     cells: row
                         .map((cell) => DataCell(
-                              Text(
-                                cell,
-                                style: isLastRow
-                                    ? TextStyle(fontWeight: FontWeight.bold)
-                                    : TextStyle(fontWeight: FontWeight.normal),
+                              Center(
+                                child: Text(
+                                  cell,
+                                  style: isLastRow
+                                      ? TextStyle(fontWeight: FontWeight.bold)
+                                      : TextStyle(
+                                          fontWeight: FontWeight.normal),
+                                ),
                               ),
                             ))
                         .toList(),

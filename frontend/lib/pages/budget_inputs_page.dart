@@ -44,7 +44,7 @@ class _BudgetInputsPageState extends State<BudgetInputsPage> {
 
     final GlobalBloc globalBloc =
         Provider.of<GlobalBloc>(context, listen: false);
-    globalBloc.onUserLogin(widget.token);
+    globalBloc.onUserLogin();
   }
 
   Future<Project?> findProjectById() async {

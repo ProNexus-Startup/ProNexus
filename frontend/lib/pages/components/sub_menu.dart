@@ -103,7 +103,7 @@ class _SubMenuState extends State<SubMenu> {
                       Navigator.pushNamed(context, ProjectDashboard.routeName,
                           arguments: ScreenArguments(widget.token));
                     },
-                  ), //isDropdown: true),
+                  ),
                   _menuItem("Available experts", () async {
                     _saveContext(AvailableExpertsDashboard.routeName);
                     Navigator.pushNamed(
@@ -128,10 +128,6 @@ class _SubMenuState extends State<SubMenu> {
                   }, isProjectInfoSelected, [
                     PopupMenuItem<int>(
                       value: 1,
-                      child: Text('Budget inputs'),
-                    ),
-                    PopupMenuItem<int>(
-                      value: 2,
                       child: Text('AI match adjustment'),
                       onTap: () async {
                         _saveContext(AiMatchPage.routeName);
@@ -140,7 +136,7 @@ class _SubMenuState extends State<SubMenu> {
                       },
                     ),
                     PopupMenuItem<int>(
-                      value: 3,
+                      value: 2,
                       child: Text('Call invite format'),
                     ),
                   ]),
@@ -241,14 +237,11 @@ class _SubMenuState extends State<SubMenu> {
       case "Project info":
         switch (value) {
           case 1:
-            _saveContext(ProjectDashboard.routeName);
-            Navigator.pushNamed(context, BudgetInputsPage.routeName,
+            _saveContext(AiMatchPage.routeName);
+            Navigator.pushNamed(context, AiMatchPage.routeName,
                 arguments: ScreenArguments(widget.token));
             break;
           case 2:
-            // Handle AI match adjustment selection
-            break;
-          case 3:
             // Handle Call invite format selection
             break;
         }

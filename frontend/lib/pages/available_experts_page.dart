@@ -37,7 +37,7 @@ class _AvailableExpertsDashboardState extends State<AvailableExpertsDashboard> {
   Future<void> _loadData() async {
     final GlobalBloc globalBloc =
         Provider.of<GlobalBloc>(context, listen: false);
-    globalBloc.onUserLogin(widget.token);
+    globalBloc.onUserLogin();
   }
 
   // Update this based on checkbox changes
@@ -192,7 +192,7 @@ class _AvailableExpertsDashboardState extends State<AvailableExpertsDashboard> {
                 ),*/
                 const Spacer(),
                 ElevatedButton(
-                  child: Text('Download Experts'),
+                  child: Text('Export to Excel'),
                   onPressed: () {
                     exportToCSV(context);
                   },
@@ -205,7 +205,7 @@ class _AvailableExpertsDashboardState extends State<AvailableExpertsDashboard> {
                     _showAddExpertDialog(
                         context, globalBloc.currentUser.organizationId);
                   },
-                  child: Text('Add Expert'),
+                  child: Text('Manually Add Expert'),
                 ),
                 const SizedBox(width: 20), // Add spacing if needed
               ],

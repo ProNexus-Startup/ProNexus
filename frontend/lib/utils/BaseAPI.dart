@@ -8,7 +8,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:http/http.dart' as http;
 
 class BaseAPI {
-  static String api = "https://pronexus-production.up.railway.app";
+  static String api =
+      "https://pronexus-production.up.railway.app"; //'http://localhost:8080';
   Uri userPath = Uri.parse('$api/me');
   Uri usersPath = Uri.parse('$api/users');
   Uri refreshPath = Uri.parse('$api/refresh');
@@ -25,6 +26,7 @@ class BaseAPI {
   Uri callsPath = Uri.parse("$api/calls-list");
   Uri updateUserProjectPath = Uri.parse("$api/update-user-project");
   Uri updateProject = Uri.parse("$api/update-project");
+  Uri passwordResetPath = Uri.parse("$api/reset-password");
 
   Map<String, String> headers = {
     "Content-Type": "application/json; charset=UTF-8"
@@ -66,6 +68,7 @@ class AuthAPI extends BaseAPI {
         // Handle server errors or invalid responses
         print(
             "Failed to create organization. Status code: ${response.statusCode}");
+        print(response.body);
       }
       return response;
     } catch (e) {
@@ -92,9 +95,6 @@ class AuthAPI extends BaseAPI {
     try {
       final response = await http
           .get(userPath, headers: {"Authorization": "Bearer ${token}"});
-
-      print(response.body);
-      print(response.statusCode);
 
       if (response.statusCode == 200) {
         User user = User.fromJson(json.decode(response.body));
@@ -403,7 +403,7 @@ class AuthAPI extends BaseAPI {
     }
   }
 
-  Future<void> refreshToken(String token) async {
+  Future<String?> refreshToken(String token) async {
     final response = await http.post(
       refreshPath,
       headers: {
@@ -413,14 +413,48 @@ class AuthAPI extends BaseAPI {
     );
 
     if (response.statusCode == 200) {
-      String newToken = jsonDecode(response.body);
+      var responseBody = jsonDecode(response.body);
+      String newToken = responseBody[
+          'access_token']; // Adjust according to the actual key in the response
       SecureStorage secureStorage = SecureStorage();
 
       await secureStorage.write('token', newToken);
+      return newToken;
     } else {
       // Handle error response
       print('Failed to refresh token: ${response.statusCode}');
+      print(response.body);
       return null;
+    }
+  }
+
+  Future<bool> resetPassword(String token) async {
+    if (token.isEmpty) {
+      print('No Authorization header provided');
+      return false;
+    }
+
+    final trimmedToken = token.replaceFirst('Bearer ', '');
+
+    final payload = json.encode({'email': trimmedToken});
+
+    final headers = {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer $trimmedToken',
+    };
+
+    final response = await http.post(
+      passwordResetPath,
+      headers: headers,
+      body: payload,
+    );
+
+    if (response.statusCode == 200) {
+      print('External endpoint triggered successfully');
+      return true;
+    } else {
+      print('External endpoint returned status code ${response.statusCode}');
+      return false;
     }
   }
 

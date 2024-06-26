@@ -1,14 +1,9 @@
-import 'dart:convert';
-
+import 'package:admin/pages/components/custom_form.dart';
+import 'package:admin/pages/login_page.dart';
 import 'package:admin/pages/user_register_page.dart';
-import 'package:admin/utils/persistence/secure_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../utils/persistence/screen_arguments.dart';
-import '../utils/formatting/app_text_form_field.dart';
-import '../utils/extensions.dart';
-import '../utils/BaseAPI.dart';
-//import 'home_page.dart';
 
 class OrgRegisterPage extends StatefulWidget {
   const OrgRegisterPage({super.key});
@@ -19,7 +14,6 @@ class OrgRegisterPage extends StatefulWidget {
 }
 
 class _OrgRegisterPageState extends State<OrgRegisterPage> {
-  AuthAPI _authAPI = AuthAPI();
   final storage = FlutterSecureStorage();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   TextEditingController orgNameController = TextEditingController();
@@ -28,132 +22,61 @@ class _OrgRegisterPageState extends State<OrgRegisterPage> {
   bool isObscure = true;
 
   Future<void> handleRegistration() async {
-    // First, validate the form
-    if (_formKey.currentState?.validate() ?? false) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Checking organization availability...')),
-      );
-      // Use the text property to get the string value from the controllers
-      var req = await _authAPI.makeOrg(orgNameController.text);
-      if (req.statusCode == 201 || req.statusCode == 200) {
-        print('this happened');
-        // || req.statusCode == 409) {
-        if (!context.mounted) {
-          return;
-        }
-        var data = jsonDecode(req.body);
-        String orgID = data['organizationID'];
-        await SecureStorage().write('organizationID', orgID);
-        Navigator.pushNamed(context, UserRegisterPage.routeName,
-            arguments: ScreenArguments(orgID));
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-              content: Text('Organization successfully registered.')),
-        );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Problem registering.')),
-        );
-      }
-    }
+    Navigator.pushNamed(context, UserRegisterPage.routeName,
+        arguments: ScreenArguments(orgNameController.text));
   }
 
   @override
   Widget build(BuildContext context) {
-    final size = context.mediaQuerySize;
     return Scaffold(
-      body: Form(
-        key: _formKey,
-        child: ListView(
-          children: [
-            Container(
-              height: size.height * 0.24,
-              width: double.infinity,
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.only(
-                      top: 15,
-                    ),
-                    child: IconButton(
-                      onPressed: () {
-                        Navigator.pop(context);
-                      },
-                      icon: const Icon(
-                        Icons.arrow_back_ios,
-                      ),
-                    ),
-                  ),
-                  Column(
-                    children: [
-                      Text(
-                        'Register your organization',
-                      ),
-                      const SizedBox(
-                        height: 6,
-                      ),
-                    ],
-                  ),
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(100),
+        child: Align(
+          alignment: Alignment.topLeft,
+          child: Image.asset(
+            'images/thin_logo.png',
+            height: 100,
+          ),
+        ),
+      ),
+      body: Center(
+        // Wrap SingleChildScrollView with Center
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center, // Center the form
+            children: [
+              CustomForm(
+                orLoginWith: false,
+                forgotPassword: false,
+                formKey: _formKey,
+                fields: [
+                  {
+                    'labelText': 'Organization Name',
+                    'keyboardType': TextInputType.name,
+                    'textInputAction': TextInputAction.next,
+                    'controller': orgNameController,
+                  },
                 ],
+                title: 'Register Your Organization',
+                buttonText: 'Register',
+                buttonAction: handleRegistration,
               ),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 20,
-                vertical: 30,
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  AppTextFormField(
-                    labelText: 'Organization Name',
-                    autofocus: true,
-                    keyboardType: TextInputType.name,
-                    textInputAction: TextInputAction.next,
-                    onChanged: (value) => _formKey.currentState?.validate(),
-                    validator: (value) {
-                      return value!.isEmpty
-                          ? 'Please, Enter Name '
-                          : value.length < 4
-                              ? 'Invalid Name'
-                              : null;
-                    },
-                    controller: orgNameController,
-                  ),
-                  FilledButton(
-                    onPressed: () {
-                      if (_formKey.currentState?.validate() ?? false) {
-                        handleRegistration();
-                      }
-                    },
-                    child: const Text('Register'),
-                  ),
-                ],
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 25),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    'I have an account?',
-                  ),
-                  TextButton(
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
-                    child: Text(
-                      'Login',
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 10),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text("Have an account?"),
+                    TextButton(
+                      onPressed: () =>
+                          Navigator.pushNamed(context, LoginPage.routeName),
+                      child: const Text('Login'),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

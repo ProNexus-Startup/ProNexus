@@ -76,6 +76,7 @@ func newRouter(database database.Database, opts ...func(*router)) *chi.Mux {
 		r.Post("/refresh", authHandler.refresh())
 		r.Post("/makeorg", organizationHandler.makeOrg())
 		r.Get("/users", userHandler.getUsers())
+		r.Post("/reset-password", authHandler.resetPassword())
 		//r.Post("/logout", authHandler.logout())
 	})
 

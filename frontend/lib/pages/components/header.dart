@@ -44,7 +44,7 @@ class TopMenu extends StatelessWidget {
 
     return Container(
       height: 80,
-      color: primaryBlue,
+      color: Colors.white,
       padding: const EdgeInsets.symmetric(horizontal: 10),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.start,
@@ -52,14 +52,13 @@ class TopMenu extends StatelessWidget {
           Expanded(
             child: Row(
               children: [
-                /*Container(
+                Container(
                   padding: const EdgeInsets.all(5),
                   decoration: BoxDecoration(
-                    color: Colors.white,
                     borderRadius: BorderRadius.circular(5),
                   ),
-                  child: Image.asset('assets/images/logo.png', height: 40),
-                ),*/
+                  child: Image.asset('images/thin_logo.png', height: 40),
+                ),
                 TextButton(
                   onPressed: () async {
                     final token = await SecureStorage().read('token');
@@ -105,13 +104,14 @@ class TopMenu extends StatelessWidget {
                 showContactInfoPopup(context);
               },
               label: const Text('Message us', style: customStyle),
-              icon: Image.asset('icons/chat_icon.png', height: 24, width: 24)),
+              icon: Image.asset('icons/chat_icon.png',
+                  color: primaryBlue, height: 24, width: 24)),
           TextButton.icon(
               onPressed: () {
                 _logout(context);
               },
               label: const Text('Log out', style: customStyle),
-              icon: const Icon(Icons.exit_to_app, color: Colors.white)),
+              icon: const Icon(Icons.exit_to_app, color: primaryBlue)),
         ],
       ),
     );
@@ -133,14 +133,14 @@ class TopMenu extends StatelessWidget {
                   name: 'Tom, CEO',
                   phone: '330-328-0223',
                   message: 'Message if you have general product questions',
-                  email: 'tommyers330@gmail.com',
+                  email: 'info@pronexus.xyz',
                 ),
                 SizedBox(height: 16.0),
                 ContactInfo(
                   name: 'Roberto, CTO',
                   phone: '305-934-3305',
                   message: 'Message if you are having technical issues',
-                  email: 'rpupo63@gmail.com',
+                  email: 'info@pronexus.xyz',
                 ),
               ],
             ),
@@ -159,7 +159,7 @@ class TopMenu extends StatelessWidget {
   }
 
   static const TextStyle customStyle = const TextStyle(
-      color: Colors.white, fontSize: 14, fontWeight: FontWeight.w500);
+      color: primaryBlue, fontSize: 14, fontWeight: FontWeight.w500);
 }
 
 class ContactInfo extends StatelessWidget {

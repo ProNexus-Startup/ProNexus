@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:admin/pages/components/custom_form.dart';
 import 'package:admin/pages/splash_page.dart';
 import 'package:admin/utils/models/user.dart';
 import 'package:flutter/material.dart';
@@ -11,9 +12,6 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 //import '../utils/login_stuff/screen_arguments.dart';
 import '../utils/persistence/secure_storage.dart';
-import '../utils/formatting/app_text_form_field.dart';
-import '../utils/extensions.dart';
-import '../utils/formatting/app_constants.dart';
 import '../utils/BaseAPI.dart';
 //import 'home_page.dart';
 
@@ -34,319 +32,197 @@ class _UserRegisterPageState extends State<UserRegisterPage> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   TextEditingController usernameController = TextEditingController();
   TextEditingController emailController = TextEditingController();
-  TextEditingController levelController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
   TextEditingController confirmPasswordController = TextEditingController();
 
   FocusNode confirmFocusNode = FocusNode();
 
   bool isObscure = true;
+  bool isObscureConfirm = true;
   bool isConfirmPasswordObscure = true;
+
   Future<void> handleRegistration() async {
-    // First, validate the form
     if (_formKey.currentState?.validate() ?? false) {
-      // Show a loading indicator or a message that email is being checked
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Checking email availability...')),
       );
-      final GlobalBloc globalBloc =
-          Provider.of<GlobalBloc>(context, listen: false);
 
-      User user = User(
-          level: levelController.text,
+      print(widget.token);
+      print('orga above');
+
+      var orgResponse = await _authAPI.makeOrg(widget.token);
+      if (orgResponse.statusCode == 201 || orgResponse.statusCode == 200) {
+        if (!context.mounted) return;
+
+        var data = jsonDecode(orgResponse.body);
+        String orgID = data['organizationID'];
+
+        final GlobalBloc globalBloc =
+            Provider.of<GlobalBloc>(context, listen: false);
+
+        User user = User(
           email: emailController.text,
           fullName: usernameController.text,
           password: passwordController.text,
-          organizationId: widget.token,
+          organizationId: orgID,
           admin: true,
           currentProject: globalBloc.benchProject,
           pastProjects: [
-            Proj(projectId: globalBloc.benchProject, start: DateTime(1, 1))
-          ]);
-      // Use the text property to get the string value from the controllers
-      var req = await _authAPI.signup(user);
-      print(req.statusCode);
-      if (req.statusCode == 201 || req.statusCode == 200) {
-        // || req.statusCode == 409) {
-        if (!context.mounted) {
-          print("context not mounted");
-          return;
-        }
-        try {
-          var req = await _authAPI.login(
-              emailController.text, passwordController.text);
-          print(req.statusCode);
-          if (req.statusCode == 201 || req.statusCode == 200) {
-            var token = jsonDecode(req.body);
+            Proj(projectId: globalBloc.benchProject, start: DateTime(1, 1)),
+          ],
+        );
+
+        var signupResponse = await _authAPI.signup(user);
+        if (signupResponse.statusCode == 201 ||
+            signupResponse.statusCode == 200) {
+          if (!context.mounted) return;
+
+          var loginResponse = await _authAPI.login(
+            emailController.text,
+            passwordController.text,
+          );
+
+          if (loginResponse.statusCode == 201 ||
+              loginResponse.statusCode == 200) {
+            var token = jsonDecode(loginResponse.body);
             await SecureStorage().write('token', token);
-            if (!context.mounted) {
-              return;
-            }
-            //BlocProvider.of<UserCubit>(context).login(user);
-            await Provider.of<GlobalBloc>(context, listen: false)
-                .onUserLogin(token);
-            if (!context.mounted) {
-              return;
-            }
+
+            if (!context.mounted) return;
+
+            await Provider.of<GlobalBloc>(context, listen: false).onUserLogin();
+
+            if (!context.mounted) return;
+
             SharedPreferences prefs = await SharedPreferences.getInstance();
             prefs.setBool("isLoggedIn", true);
-            if (!context.mounted) {
-              return;
-            }
+
+            if (!context.mounted) return;
+
             Navigator.pushNamed(context, SplashPage.routeName,
                 arguments: ScreenArguments(token));
+
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(content: Text('Email successfully registered.')),
             );
           } else {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Problem registering.')),
-            );
+            _showErrorSnackBar('Problem registering.');
           }
-        } catch (e) {
-          print(e);
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Problem registering.')),
-          );
+        } else {
+          _showErrorSnackBar('Email is already registered.');
         }
       } else {
-        if (!context.mounted) {
-          return;
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Email is already registered.')),
-          );
-        }
+        _showErrorSnackBar('Organization is already registered.');
       }
     }
   }
 
+  void _showErrorSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    final size = context.mediaQuerySize;
     return Scaffold(
-      body: Form(
-        key: _formKey,
-        child: ListView(
-          children: [
-            Container(
-              height: size.height * 0.24,
-              width: double.infinity,
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.only(
-                      top: 15,
-                    ),
-                    child: IconButton(
-                      onPressed: () {
-                        Navigator.pop(context);
-                      },
-                      icon: const Icon(
-                        Icons.arrow_back_ios,
-                      ),
-                    ),
-                  ),
-                  Column(
-                    children: [
-                      const SizedBox(
-                        height: 6,
-                      ),
-                      Text(
-                        'Create your account',
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 20,
-                vertical: 30,
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  AppTextFormField(
-                    labelText: 'Username',
-                    autofocus: true,
-                    keyboardType: TextInputType.name,
-                    textInputAction: TextInputAction.next,
-                    onChanged: (value) => _formKey.currentState?.validate(),
-                    validator: (value) {
-                      return value!.isEmpty
-                          ? 'Please, Enter Name '
-                          : value.length < 4
-                              ? 'Invalid Name'
-                              : null;
-                    },
-                    controller: usernameController,
-                  ),
-                  /*AppTextFormField(
-                    labelText: 'Last Name',
-                    autofocus: true,
-                    keyboardType: TextInputType.name,
-                    textInputAction: TextInputAction.next,
-                    onChanged: (value) => _formKey.currentState?.validate(),
-                    validator: (value) {
-                      return value!.isEmpty
-                          ? 'Please, Enter Last Name '
-                          : value.length < 4
-                              ? 'Invalid Name'
-                              : null;
-                    },
-                    controller: lastNameController,
-                  ),*/
-                  AppTextFormField(
-                    labelText: 'Email',
-                    keyboardType: TextInputType.emailAddress,
-                    textInputAction: TextInputAction.next,
-                    onChanged: (_) => _formKey.currentState?.validate(),
-                    validator: (value) {
-                      return value!.isEmpty
-                          ? 'Please, Enter Email Address'
-                          : AppConstants.emailRegex.hasMatch(value)
-                              ? null
-                              : 'Invalid Email Address';
-                    },
-                    controller: emailController,
-                  ),
-                  AppTextFormField(
-                    labelText: 'Level',
-                    autofocus: true,
-                    keyboardType: TextInputType.name,
-                    textInputAction: TextInputAction.next,
-                    onChanged: (value) => _formKey.currentState?.validate(),
-                    validator: (value) {
-                      return value!.isEmpty
-                          ? 'Please, Enter Company Title'
-                          : value.length < 4
-                              ? 'Invalid Name'
-                              : null;
-                    },
-                    controller: levelController,
-                  ),
-                  /*AppTextFormField(
-                    labelText: 'Phone as (xxx) xxx-xxxx',
-                    keyboardType: TextInputType.phone,
-                    textInputAction: TextInputAction.next,
-                    onChanged: (_) => _formKey.currentState?.validate(),
-                    validator: (value) {
-                      return value!.isEmpty
-                          ? 'Please, Enter Phone Number'
-                          : AppConstants.phoneRegex.hasMatch(value)
-                              ? null
-                              : 'Invalid Phone Number';
-                    },
-                    controller: phoneController,
-                  ),*/
-                  AppTextFormField(
-                    labelText: 'Password',
-                    keyboardType: TextInputType.visiblePassword,
-                    textInputAction: TextInputAction.next,
-                    onChanged: (_) => _formKey.currentState?.validate(),
-                    validator: (value) {
-                      return value!.isEmpty
-                          ? 'Please, Enter Password'
-                          : AppConstants.passwordRegex.hasMatch(value)
-                              ? null
-                              : 'Invalid Password';
-                    },
-                    controller: passwordController,
-                    obscureText: isObscure,
-                    onEditingComplete: () {
-                      FocusScope.of(context).unfocus();
-                      FocusScope.of(context).requestFocus(confirmFocusNode);
-                    },
-                    suffixIcon: Padding(
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(100),
+        child: Align(
+          alignment: Alignment.topLeft,
+          child: Image.asset(
+            'images/thin_logo.png',
+            height: 100,
+          ),
+        ),
+      ),
+      body: Center(
+        // Wrap SingleChildScrollView with Center
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center, // Center the form
+            children: [
+              CustomForm(
+                forgotPassword: false,
+                formKey: _formKey,
+                orLoginWith: false,
+                fields: [
+                  {
+                    'labelText': 'Email',
+                    'keyboardType': TextInputType.emailAddress,
+                    'textInputAction': TextInputAction.next,
+                    'controller': emailController,
+                  },
+                  {
+                    'labelText': 'Full Name',
+                    'keyboardType': TextInputType.name,
+                    'textInputAction': TextInputAction.next,
+                    'controller': usernameController,
+                  },
+                  {
+                    'labelText': 'Password',
+                    'keyboardType': TextInputType.visiblePassword,
+                    'textInputAction': TextInputAction.done,
+                    'controller': passwordController,
+                    'obscureText': isObscure,
+                    'suffixIcon': Padding(
                       padding: const EdgeInsets.only(right: 15),
-                      child: Focus(
-                        /// If false,
-                        ///
-                        /// disable focus for all of this node's descendants
-                        descendantsAreFocusable: false,
-
-                        /// If false,
-                        ///
-                        /// make this widget's descendants un-traversable.
-                        // descendantsAreTraversable: false,
-                        child: IconButton(
-                          onPressed: () => setState(() {
+                      child: IconButton(
+                        onPressed: () {
+                          setState(() {
                             isObscure = !isObscure;
-                          }),
-                          icon: Icon(
-                            isObscure
-                                ? Icons.visibility_off_outlined
-                                : Icons.visibility_outlined,
-                          ),
+                          });
+                        },
+                        icon: Icon(
+                          isObscure
+                              ? Icons.visibility_off_outlined
+                              : Icons.visibility_outlined,
                         ),
                       ),
                     ),
-                  ),
-                  AppTextFormField(
-                    labelText: 'Confirm Password',
-                    keyboardType: TextInputType.visiblePassword,
-                    textInputAction: TextInputAction.done,
-                    focusNode: confirmFocusNode,
-                    onChanged: (value) {
-                      _formKey.currentState?.validate();
-                    },
-                    validator: (value) {
-                      return value!.isEmpty
-                          ? 'Please, Re-Enter Password'
-                          : AppConstants.passwordRegex.hasMatch(value)
-                              ? passwordController.text ==
-                                      confirmPasswordController.text
-                                  ? null
-                                  : 'Password not matched!'
-                              : 'Invalid Password!';
-                    },
-                    controller: confirmPasswordController,
-                    obscureText: isConfirmPasswordObscure,
-                    suffixIcon: Padding(
+                  },
+                  {
+                    'labelText': 'Confirm Password',
+                    'keyboardType': TextInputType.visiblePassword,
+                    'textInputAction': TextInputAction.done,
+                    'controller': confirmPasswordController,
+                    'obscureText': isObscureConfirm,
+                    'suffixIcon': Padding(
                       padding: const EdgeInsets.only(right: 15),
-                      child: Focus(
-                        /// If false,
-                        ///
-                        /// disable focus for all of this node's descendants.
-                        descendantsAreFocusable: false,
-
-                        /// If false,
-                        ///
-                        /// make this widget's descendants un-traversable.
-                        // descendantsAreTraversable: false,
-                        child: IconButton(
-                          onPressed: () {
-                            setState(() {
-                              isConfirmPasswordObscure =
-                                  !isConfirmPasswordObscure;
-                            });
-                          },
-                          icon: Icon(
-                            isConfirmPasswordObscure
-                                ? Icons.visibility_off_outlined
-                                : Icons.visibility_outlined,
-                          ),
+                      child: IconButton(
+                        onPressed: () {
+                          setState(() {
+                            isObscureConfirm = !isObscureConfirm;
+                          });
+                        },
+                        icon: Icon(
+                          isObscureConfirm
+                              ? Icons.visibility_off_outlined
+                              : Icons.visibility_outlined,
                         ),
                       ),
                     ),
-                  ),
-                  FilledButton(
-                    onPressed: () {
-                      if (_formKey.currentState?.validate() ?? false) {
-                        handleRegistration();
-                      }
-                    },
-                    child: const Text('Register'),
-                  ),
+                  },
                 ],
+                title: 'Create Your Account',
+                buttonText: 'Register',
+                buttonAction: handleRegistration,
               ),
-            ),
-          ],
+              /*Padding(
+                padding: const EdgeInsets.symmetric(vertical: 10),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text("Don't have an account?"),
+                    TextButton(
+                      onPressed: () =>
+                          Navigator.pushNamed(context, '/org-registration'),
+                      child: const Text('Register New Organization'),
+                    ),
+                  ],
+                ),
+              ),*/
+            ],
+          ),
         ),
       ),
     );

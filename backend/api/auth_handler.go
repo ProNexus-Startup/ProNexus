@@ -210,7 +210,78 @@ func (h authHandler) refresh() http.HandlerFunc {
             return
         }
 
-        // Send the response back to the client
-        h.responder.writeJSON(w, accessToken)
+        // Send the new token back to the client
+        response := map[string]string{
+            "access_token": accessToken,
+        }
+        h.responder.writeJSON(w, response)
+    }
+}
+
+func (h authHandler) resetPassword() http.HandlerFunc {
+    return func(w http.ResponseWriter, r *http.Request) {
+        var resetRequest struct {
+            Email string `json:"email"`
+        }
+
+        if err := json.NewDecoder(r.Body).Decode(&resetRequest); err != nil {
+            h.responder.writeError(w, errs.Malformed("request body"))
+            return
+        }
+
+        if resetRequest.Email == "" {
+            h.responder.writeError(w, errs.BadRequest("email is required"))
+            return
+        }
+
+        _, err := h.userRepo.FindByEmail(resetRequest.Email)
+        if errors.Is(err, errs.ErrNotFound) {
+            h.responder.writeError(w, errs.NewNotFound("user"))
+            return
+        } else if err != nil {
+            h.responder.writeError(w, fmt.Errorf("error getting user from user repo: %v", err))
+            return
+        }
+
+        payload := map[string]string{"email": resetRequest.Email}
+        payloadBytes, err := json.Marshal(payload)
+        if err != nil {
+            h.logger.Error().Err(err).Msg("error marshalling payload")
+            h.responder.writeError(w, fmt.Errorf("error marshalling payload: %v", err))
+            return
+        }
+
+        endpoint := os.Getenv("EXTERNAL_ENDPOINT")
+        if endpoint == "" {
+            h.logger.Error().Msg("EXTERNAL_ENDPOINT not set in environment variables")
+            h.responder.writeError(w, fmt.Errorf("external endpoint not set in environment variables"))
+            return
+        }
+
+        req, err := http.NewRequest("POST", endpoint, strings.NewReader(string(payloadBytes)))
+        if err != nil {
+            h.logger.Error().Err(err).Msg("error creating request")
+            h.responder.writeError(w, fmt.Errorf("error creating request: %v", err))
+            return
+        }
+
+        req.Header.Set("Content-Type", "application/json")
+        client := &http.Client{}
+        resp, err := client.Do(req)
+        if err != nil {
+            h.logger.Error().Err(err).Msg("error sending request to external endpoint")
+            h.responder.writeError(w, fmt.Errorf("error sending request to external endpoint: %v", err))
+            return
+        }
+        defer resp.Body.Close()
+
+        if resp.StatusCode != http.StatusOK {
+            h.logger.Error().Msgf("external endpoint returned status code %d", resp.StatusCode)
+            h.responder.writeError(w, fmt.Errorf("external endpoint returned status code %d", resp.StatusCode))
+            return
+        }
+
+        h.logger.Info().Msg("external endpoint triggered successfully")
+        h.responder.writeJSON(w, map[string]string{"status": "success", "message": "Password reset email sent"})
     }
 }

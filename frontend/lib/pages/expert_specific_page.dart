@@ -33,7 +33,7 @@ class _ExpertSpecificPageState extends State<ExpertSpecificPage> {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     final GlobalBloc globalBloc =
         Provider.of<GlobalBloc>(context, listen: false);
-    globalBloc.onUserLogin(widget.token);
+    globalBloc.onUserLogin();
 
     String expertId = prefs.getString('expert_string') ?? '';
     if (expertId.isNotEmpty) {
